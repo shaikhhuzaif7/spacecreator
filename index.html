@@ -3,270 +3,291 @@
 <html lang="hi">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SpaceCreator - Canva Studio</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@600;800&family=Pacifico&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>SpaceCreator - Photo Studio</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Poppins', sans-serif; background: #f8fafc; color: #1e293b; overflow-x: hidden; }
+    body { font-family: 'Poppins', sans-serif; background: #f8fafc; color: #1e293b; user-select: none; }
 
-    /* Top Nav */
-    .navbar { background: #ffffff; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 100; }
-    .brand { font-size: 20px; font-weight: 800; color: #6366f1; display: flex; align-items: center; gap: 8px; }
-    .btn-create { background: #6366f1; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px; }
+    /* Home View */
+    #homeScreen { min-height: 100vh; display: flex; flex-direction: column; }
+    .top-nav { background: #fff; padding: 12px 18px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; }
+    .brand-title { font-size: 19px; font-weight: 800; color: #7c3aed; }
+    
+    .hero-banner { background: linear-gradient(135deg, #8b5cf6, #ec4899); margin: 14px; border-radius: 18px; padding: 26px 18px; color: white; text-align: center; }
+    .hero-banner h2 { font-size: 21px; margin-bottom: 10px; font-weight: 700; }
+    .search-mock { background: white; border-radius: 25px; padding: 8px 14px; display: flex; align-items: center; gap: 8px; color: #94a3b8; font-size: 13px; max-width: 400px; margin: 0 auto; }
+    
+    .sec-title { font-size: 15px; font-weight: 700; padding: 12px 18px 6px; }
+    .action-row { display: flex; gap: 12px; padding: 8px 18px; overflow-x: auto; }
+    .action-card { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; min-width: 130px; text-align: center; cursor: pointer; }
+    .action-icon { font-size: 26px; margin-bottom: 6px; }
+    .action-name { font-size: 12px; font-weight: 600; }
 
-    /* Home Hero */
-    #homePage { padding-bottom: 50px; }
-    .hero { background: linear-gradient(135deg, #a5b4fc 0%, #c084fc 50%, #f472b6 100%); border-radius: 20px; margin: 16px; padding: 36px 20px; text-align: center; color: white; box-shadow: 0 10px 25px rgba(99,102,241,0.25); }
-    .hero h2 { font-size: 24px; font-weight: 700; margin-bottom: 16px; text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-    .search-box { max-width: 450px; margin: 0 auto; background: white; border-radius: 30px; display: flex; align-items: center; padding: 6px 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
-    .search-box input { border: none; outline: none; width: 100%; padding: 8px; font-size: 14px; font-family: inherit; }
+    /* Photo Editor Screen */
+    #editorScreen { display: none; flex-direction: column; height: 100vh; background: #0b0f19; }
+    .editor-header { background: #1e293b; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; }
+    .btn-hdr { border: none; padding: 7px 12px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
+    .btn-back { background: #334155; color: white; }
+    .btn-save { background: #7c3aed; color: white; }
 
-    /* Categories Bar */
-    .cat-bar { display: flex; gap: 14px; overflow-x: auto; padding: 14px 20px; scrollbar-width: none; }
-    .cat-item { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; min-width: 72px; }
-    .cat-icon { width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; background: white; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
-    .cat-text { font-size: 11px; font-weight: 600; color: #475569; text-align: center; }
+    .canvas-viewport { flex: 1; display: flex; justify-content: center; align-items: center; overflow: hidden; position: relative; background: #020617; }
+    #imageCanvas { max-width: 95%; max-height: 95%; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.7); touch-action: none; }
 
-    /* Template Grid */
-    .section-head { font-size: 18px; font-weight: 700; padding: 16px 20px 8px 20px; color: #0f172a; }
-    .template-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; padding: 0 20px; }
-    .tpl-card { background: white; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; cursor: pointer; transition: 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
-    .tpl-card:active { transform: scale(0.97); }
-    .tpl-thumb { height: 110px; display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 14px; text-align: center; padding: 10px; }
-    .tpl-info { padding: 10px; font-size: 12px; font-weight: 600; color: #334155; }
-
-    /* Studio / Editor View */
-    #editorPage { display: none; flex-direction: column; height: 100vh; background: #0f172a; color: white; }
-    .editor-top { background: #1e293b; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #334155; }
-    .editor-body { display: flex; flex: 1; overflow: hidden; }
-    .tools-bar { width: 260px; background: #1e293b; border-right: 1px solid #334155; padding: 14px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
-    .btn-tool { background: #334155; color: white; border: 1px solid #475569; padding: 8px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; width: 100%; justify-content: center; }
-    .tool-row { display: flex; gap: 8px; align-items: center; }
-    select, input[type="color"] { background: #334155; color: white; border: 1px solid #475569; border-radius: 8px; padding: 7px; font-size: 13px; width: 100%; }
-    input[type="color"] { width: 48px; height: 36px; padding: 2px; }
-    .canvas-wrap { flex: 1; display: flex; align-items: center; justify-content: center; background: #020617; padding: 16px; overflow: auto; }
-    .c-box { border-radius: 10px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.8); border: 1px solid #334155; }
-
-    @media (max-width: 768px) {
-      .editor-body { flex-direction: column; }
-      .tools-bar { width: 100%; max-height: 200px; }
-    }
+    /* Bottom Control Bar */
+    .bottom-bar { background: #1e293b; border-top: 1px solid #334155; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+    .tool-selector { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+    .btn-tool { background: #334155; color: white; border: 1px solid #475569; padding: 6px 12px; border-radius: 20px; font-size: 12px; white-space: nowrap; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+    .btn-tool.active { background: #7c3aed; border-color: #a78bfa; font-weight: 600; }
+    
+    .brush-controls { display: flex; align-items: center; gap: 10px; color: #94a3b8; font-size: 12px; }
+    .brush-slider { flex: 1; accent-color: #a855f7; }
   </style>
 </head>
 <body>
 
-  <!-- 1. HOME VIEW (CANVA STYLE) -->
-  <div id="homePage">
-    <div class="navbar">
-      <div class="brand">🚀 SpaceCreator</div>
-      <button class="btn-create" onclick="openEditor('blank')">+ Create New</button>
+  <!-- 1. HOME SCREEN -->
+  <div id="homeScreen">
+    <div class="top-nav">
+      <div class="brand-title">🚀 SpaceCreator</div>
+      <label class="btn-hdr btn-save" style="cursor: pointer;">
+        + Edit Photo
+        <input type="file" id="fileUploadHome" accept="image/*" style="display: none;">
+      </label>
     </div>
 
-    <div class="hero">
+    <div class="hero-banner">
       <h2>What will you design today?</h2>
-      <div class="search-box">
-        <span style="color:#94a3b8; font-size: 16px; margin-right: 6px;">🔍</span>
-        <input type="text" placeholder="Search templates (YouTube, Insta, Banner)...">
-      </div>
+      <div class="search-mock">🔍 Search photo tools, templates...</div>
     </div>
 
-    <!-- Categories -->
-    <div class="cat-bar">
-      <div class="cat-item" onclick="openEditor('yt')">
-        <div class="cat-icon" style="background:#fee2e2; color:#ef4444;">🔴</div>
-        <span class="cat-text">YouTube</span>
-      </div>
-      <div class="cat-item" onclick="openEditor('insta')">
-        <div class="cat-icon" style="background:#fce7f3; color:#ec4899;">📸</div>
-        <span class="cat-text">Instagram</span>
-      </div>
-      <div class="cat-item" onclick="openEditor('gaming')">
-        <div class="cat-icon" style="background:#e0e7ff; color:#6366f1;">🎮</div>
-        <span class="cat-text">Gaming</span>
-      </div>
-      <div class="cat-item" onclick="openEditor('sale')">
-        <div class="cat-icon" style="background:#fef3c7; color:#f59e0b;">🏷️</div>
-        <span class="cat-text">Flash Sale</span>
-      </div>
-      <div class="cat-item" onclick="openEditor('blank')">
-        <div class="cat-icon" style="background:#f1f5f9; color:#64748b;">➕</div>
-        <span class="cat-text">Custom</span>
-      </div>
+    <div class="sec-title">Quick Actions</div>
+    <div class="action-row">
+      <label class="action-card" style="cursor: pointer;">
+        <div class="action-icon">🪄</div>
+        <div class="action-name">Magic Brush</div>
+        <input type="file" class="hidden-upload" accept="image/*" style="display: none;">
+      </label>
+      <label class="action-card" style="cursor: pointer;">
+        <div class="action-icon">🖼️</div>
+        <div class="action-name">Photo Filter</div>
+        <input type="file" class="hidden-upload" accept="image/*" style="display: none;">
+      </label>
+      <label class="action-card" style="cursor: pointer;">
+        <div class="action-icon">🧹</div>
+        <div class="action-name">Erase / Clean</div>
+        <input type="file" class="hidden-upload" accept="image/*" style="display: none;">
+      </label>
     </div>
 
-    <!-- Templates Gallery -->
-    <div class="section-head">Templates for you</div>
-    <div class="template-grid">
-      <div class="tpl-card" onclick="openEditor('yt')">
-        <div class="tpl-thumb" style="background: linear-gradient(135deg, #ef4444, #991b1b);">
-          🔥 VIRAL THUMBNAIL
-        </div>
-        <div class="tpl-info">YouTube Thumbnail (16:9)</div>
+    <div class="sec-title">Sample Photos to Edit</div>
+    <div class="action-row">
+      <div class="action-card" onclick="loadSample('model')">
+        <div class="action-icon">👗</div>
+        <div class="action-name">Fashion Model</div>
       </div>
-
-      <div class="tpl-card" onclick="openEditor('insta')">
-        <div class="tpl-thumb" style="background: linear-gradient(135deg, #ec4899, #8b5cf6);">
-          ✨ NEW LAUNCH POST
-        </div>
-        <div class="tpl-info">Instagram Post (Square)</div>
-      </div>
-
-      <div class="tpl-card" onclick="openEditor('gaming')">
-        <div class="tpl-thumb" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
-          🏆 GRANDMASTER LIVE
-        </div>
-        <div class="tpl-info">Gaming Stream Cover</div>
-      </div>
-
-      <div class="tpl-card" onclick="openEditor('sale')">
-        <div class="tpl-thumb" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
-          💥 50% OFF FLASH SALE
-        </div>
-        <div class="tpl-info">Promo & Offer Banner</div>
+      <div class="action-card" onclick="loadSample('car')">
+        <div class="action-icon">🏎️</div>
+        <div class="action-name">Sports Car</div>
       </div>
     </div>
   </div>
 
-  <!-- 2. STUDIO EDITOR VIEW -->
-  <div id="editorPage">
-    <div class="editor-top">
-      <button class="btn-tool" style="width: auto; padding: 6px 12px; background:#475569;" onclick="goHome()">⬅️ Home</button>
-      <span style="font-weight: 700; font-size: 14px; color:#38bdf8;">SpaceCreator Studio</span>
-      <button class="btn-create" style="background:#0284c7;" onclick="saveDesign()">⬇️ Download</button>
+  <!-- 2. IN-APP PHOTO EDITOR SCREEN -->
+  <div id="editorScreen">
+    <div class="editor-header">
+      <button class="btn-hdr btn-back" onclick="exitToHome()">⬅️ Home</button>
+      <span style="font-size: 13px; font-weight: 700; color: #a78bfa;">Brush Editor</span>
+      <button class="btn-hdr btn-save" onclick="downloadImage()">⬇️ Download</button>
     </div>
 
-    <div class="editor-body">
-      <div class="tools-bar">
-        <button class="btn-tool" onclick="addText()">✏️ Add Text</button>
-        <button class="btn-tool" onclick="addBox()">⬛ Add Box</button>
-        
-        <label class="btn-tool" style="cursor: pointer;">
-          🖼️ Upload Photo
-          <input type="file" id="uploadImg" accept="image/*" style="display:none;">
-        </label>
+    <div class="canvas-viewport">
+      <canvas id="imageCanvas"></canvas>
+    </div>
 
-        <div style="font-size:11px; text-transform:uppercase; color:#94a3b8; font-weight:700; margin-top:4px;">Font & Color</div>
-        <div class="tool-row">
-          <select id="fontSelect" onchange="changeFont(this.value)">
-            <option value="Poppins">Poppins</option>
-            <option value="Bebas Neue">Bebas Neue (Viral)</option>
-            <option value="Montserrat">Montserrat (Bold)</option>
-            <option value="Pacifico">Pacifico (Cursive)</option>
-          </select>
-          <input type="color" id="colorPicker" value="#ffffff" onchange="changeColor(this.value)">
-        </div>
-
-        <button class="btn-tool" style="background:#dc2626; border:none; margin-top: auto;" onclick="deleteItem()">🗑️ Delete Element</button>
+    <div class="bottom-bar">
+      <!-- Brush size slider -->
+      <div class="brush-controls">
+        <span>Brush Size:</span>
+        <input type="range" id="brushSize" class="brush-slider" min="5" max="80" value="25">
+        <span id="sizeVal">25px</span>
       </div>
 
-      <div class="canvas-wrap">
-        <div class="c-box">
-          <canvas id="mainCanvas" width="640" height="360"></canvas>
-        </div>
+      <!-- Tools -->
+      <div class="tool-selector">
+        <button class="btn-tool active" id="btnBrush" onclick="setMode('brush')">🟣 Magic Paint</button>
+        <button class="btn-tool" id="btnErase" onclick="setMode('eraser')">🧽 Clear Marks</button>
+        <button class="btn-tool" onclick="applyEffect('vintage')">🎞️ Vintage</button>
+        <button class="btn-tool" onclick="applyEffect('bw')">⬛ B&W</button>
+        <button class="btn-tool" onclick="applyEffect('bright')">☀️ Bright</button>
+        <button class="btn-tool" onclick="applyEffect('reset')">🔄 Reset Photo</button>
       </div>
     </div>
   </div>
 
   <script>
-    const canvas = new fabric.Canvas('mainCanvas', { backgroundColor: '#1e293b' });
+    const canvas = document.getElementById('imageCanvas');
+    const ctx = canvas.getContext('2d');
+    let loadedImage = new Image();
+    let originalImageData = null;
+    let isDrawing = false;
+    let currentMode = 'brush'; // 'brush' or 'eraser'
+    let brushRadius = 25;
 
-    function goHome() {
-      document.getElementById('editorPage').style.display = 'none';
-      document.getElementById('homePage').style.display = 'block';
+    // Handle Uploads
+    function attachUploadHandlers() {
+      const inputs = [document.getElementById('fileUploadHome'), ...document.querySelectorAll('.hidden-upload')];
+      inputs.forEach(input => {
+        input.addEventListener('change', function(e) {
+          const file = e.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = function(evt) {
+            initEditorWithImage(evt.target.result);
+          };
+          reader.readAsDataURL(file);
+        });
+      });
     }
+    attachUploadHandlers();
 
-    function openEditor(type) {
-      document.getElementById('homePage').style.display = 'none';
-      document.getElementById('editorPage').style.display = 'flex';
-      canvas.clear();
-
-      if (type === 'yt') {
-        canvas.setBackgroundColor('#0b0f19', canvas.renderAll.bind(canvas));
-        addShapeBox(40, 40, 160, 44, '#ef4444');
-        addCustomText('VIRAL VIDEO', 55, 46, 26, 'Bebas Neue', '#ffffff');
-        addCustomText('HOW TO GO PRO 🚀', 40, 110, 46, 'Bebas Neue', '#facc15');
-      } else if (type === 'insta') {
-        canvas.setBackgroundColor('#fdf2f8', canvas.renderAll.bind(canvas));
-        addShapeBox(60, 40, 520, 280, '#ec4899');
-        addCustomText('NEW COLLECTION', 90, 80, 40, 'Montserrat', '#ffffff');
-        addCustomText('Tap link in bio to shop now!', 90, 150, 18, 'Poppins', '#fce7f3');
-      } else if (type === 'gaming') {
-        canvas.setBackgroundColor('#030712', canvas.renderAll.bind(canvas));
-        addShapeBox(40, 40, 220, 46, '#2563eb');
-        addCustomText('GRANDMASTER PUSH', 50, 48, 24, 'Bebas Neue', '#ffffff');
-        addCustomText('1v4 CLUTCH MOMENT', 40, 110, 48, 'Bebas Neue', '#38bdf8');
-      } else if (type === 'sale') {
-        canvas.setBackgroundColor('#fffbeb', canvas.renderAll.bind(canvas));
-        addShapeBox(60, 40, 520, 280, '#f59e0b');
-        addCustomText('MEGA SALE 50% OFF', 90, 90, 42, 'Montserrat', '#ffffff');
-        addCustomText('Limited time offer only!', 90, 160, 18, 'Poppins', '#fff');
+    // Sample Images
+    function loadSample(type) {
+      if (type === 'model') {
+        initEditorWithImage('https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&auto=format&fit=crop&q=80');
       } else {
-        canvas.setBackgroundColor('#ffffff', canvas.renderAll.bind(canvas));
-        addCustomText('Start Your Design', 160, 150, 36, 'Poppins', '#0f172a');
+        initEditorWithImage('https://images.unsplash.com/photo-1617814076367-b759c7d7e738?w=800&auto=format&fit=crop&q=80');
       }
     }
 
-    function addCustomText(str, left, top, size, font, color) {
-      const text = new fabric.IText(str, { left, top, fontSize: size, fontFamily: font, fill: color });
-      canvas.add(text);
-    }
+    function initEditorWithImage(src) {
+      document.getElementById('homeScreen').style.display = 'none';
+      document.getElementById('editorScreen').style.display = 'flex';
 
-    function addShapeBox(left, top, width, height, fill) {
-      const rect = new fabric.Rect({ left, top, width, height, fill, rx: 8, ry: 8 });
-      canvas.add(rect);
-    }
+      loadedImage.crossOrigin = "anonymous";
+      loadedImage.src = src;
+      loadedImage.onload = function() {
+        const maxWidth = Math.min(window.innerWidth - 30, 720);
+        const maxHeight = window.innerHeight * 0.65;
+        let w = loadedImage.width;
+        let h = loadedImage.height;
 
-    function addText() {
-      const text = new fabric.IText('Double Tap to Edit', { left: 100, top: 100, fontSize: 32, fill: '#ffffff', fontFamily: 'Poppins' });
-      canvas.add(text);
-      canvas.setActiveObject(text);
-    }
+        const ratio = Math.min(maxWidth / w, maxHeight / h, 1);
+        canvas.width = w * ratio;
+        canvas.height = h * ratio;
 
-    function addBox() {
-      const rect = new fabric.Rect({ left: 120, top: 120, width: 140, height: 90, fill: '#6366f1', rx: 8, ry: 8 });
-      canvas.add(rect);
-      canvas.setActiveObject(rect);
-    }
-
-    function changeFont(val) {
-      const act = canvas.getActiveObject();
-      if (act && act.type === 'i-text') { act.set('fontFamily', val); canvas.renderAll(); }
-    }
-
-    function changeColor(val) {
-      const act = canvas.getActiveObject();
-      if (act) { act.set('fill', val); canvas.renderAll(); }
-    }
-
-    document.getElementById('uploadImg').addEventListener('change', function(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        const img = new Image();
-        img.src = evt.target.result;
-        img.onload = function() {
-          const fabricImg = new fabric.Image(img);
-          fabricImg.scaleToWidth(260);
-          canvas.centerObject(fabricImg);
-          canvas.add(fabricImg);
-          canvas.renderAll();
-        };
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(loadedImage, 0, 0, canvas.width, canvas.height);
+        originalImageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
       };
-      reader.readAsDataURL(file);
+    }
+
+    function exitToHome() {
+      document.getElementById('editorScreen').style.display = 'none';
+      document.getElementById('homeScreen').style.display = 'flex';
+    }
+
+    // Brush Tool Logic
+    function getPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      return {
+        x: (clientX - rect.left) * (canvas.width / rect.width),
+        y: (clientY - rect.top) * (canvas.height / rect.height)
+      };
+    }
+
+    function startPaint(e) {
+      isDrawing = true;
+      paint(e);
+    }
+
+    function stopPaint() {
+      isDrawing = false;
+      ctx.beginPath();
+    }
+
+    function paint(e) {
+      if (!isDrawing) return;
+      e.preventDefault();
+      const pos = getPos(e);
+
+      ctx.lineWidth = brushRadius * 2;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      if (currentMode === 'brush') {
+        ctx.strokeStyle = 'rgba(168, 85, 247, 0.65)'; // Purple semi-transparent Canva brush
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(pos.x, pos.y);
+      } else if (currentMode === 'eraser') {
+        // Redraw clean original section under eraser
+        if (originalImageData) {
+          ctx.putImageData(originalImageData, 0, 0);
+        }
+      }
+    }
+
+    canvas.addEventListener('mousedown', startPaint);
+    canvas.addEventListener('mousemove', paint);
+    canvas.addEventListener('mouseup', stopPaint);
+
+    canvas.addEventListener('touchstart', startPaint, { passive: false });
+    canvas.addEventListener('touchmove', paint, { passive: false });
+    canvas.addEventListener('touchend', stopPaint);
+
+    // Slider
+    document.getElementById('brushSize').addEventListener('input', function(e) {
+      brushRadius = parseInt(e.target.value);
+      document.getElementById('sizeVal').innerText = brushRadius + 'px';
     });
 
-    function deleteItem() {
-      const act = canvas.getActiveObject();
-      if (act) canvas.remove(act);
+    function setMode(mode) {
+      currentMode = mode;
+      document.getElementById('btnBrush').classList.toggle('active', mode === 'brush');
+      document.getElementById('btnErase').classList.toggle('active', mode === 'eraser');
+      if (mode === 'eraser' && originalImageData) {
+        ctx.putImageData(originalImageData, 0, 0);
+      }
     }
 
-    function saveDesign() {
+    // Filters
+    function applyEffect(effect) {
+      if (!originalImageData) return;
+      ctx.putImageData(originalImageData, 0, 0);
+      let imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      let data = imgData.data;
+
+      if (effect === 'bw') {
+        for (let i = 0; i < data.length; i += 4) {
+          let avg = 0.3 * data[i] + 0.59 * data[i+1] + 0.11 * data[i+2];
+          data[i] = data[i+1] = data[i+2] = avg;
+        }
+        ctx.putImageData(imgData, 0, 0);
+      } else if (effect === 'vintage') {
+        for (let i = 0; i < data.length; i += 4) {
+          data[i] = data[i] * 1.15;
+          data[i+2] = data[i+2] * 0.8;
+        }
+        ctx.putImageData(imgData, 0, 0);
+      } else if (effect === 'bright') {
+        for (let i = 0; i < data.length; i += 4) {
+          data[i] = Math.min(255, data[i] + 30);
+          data[i+1] = Math.min(255, data[i+1] + 30);
+          data[i+2] = Math.min(255, data[i+2] + 30);
+        }
+        ctx.putImageData(imgData, 0, 0);
+      }
+    }
+
+    function downloadImage() {
       const link = document.createElement('a');
-      link.download = 'spacecreator-design.png';
-      link.href = canvas.toDataURL({ format: 'png', quality: 1.0, multiplier: 2 });
+      link.download = 'spacecreator-edited.png';
+      link.href = canvas.toDataURL('image/png');
       link.click();
     }
   </script>

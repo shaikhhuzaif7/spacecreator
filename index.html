@@ -1,10 +1,13 @@
+
 <!DOCTYPE html>
 <html lang="hi">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>SpaceCreator - Studio Pro Max</title>
+  <title>SpaceCreator - Studio Pro Max v2</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+  <!-- jsPDF for PDF export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@700;900&family=Poppins:wght@400;600;700&family=Pacifico&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
@@ -13,22 +16,23 @@
     /* Header */
     header { background: #111827; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #1f2937; }
     .brand { font-size: 17px; font-weight: 800; color: #38bdf8; display: flex; align-items: center; gap: 6px; }
-    .header-btns { display: flex; gap: 8px; }
-    .btn-top { border: none; padding: 7px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer; }
+    .header-btns { display: flex; gap: 6px; }
+    .btn-top { border: none; padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; }
     .btn-save-png { background: #0284c7; color: white; }
     .btn-save-jpg { background: #059669; color: white; }
+    .btn-save-pdf { background: #dc2626; color: white; }
 
     /* Studio Layout */
     .studio-container { display: flex; flex: 1; overflow: hidden; }
     
     /* Nav Tabs */
-    .nav-tabs { width: 75px; background: #090d16; border-right: 1px solid #1f2937; display: flex; flex-direction: column; align-items: center; padding: 12px 0; gap: 16px; }
+    .nav-tabs { width: 75px; background: #090d16; border-right: 1px solid #1f2937; display: flex; flex-direction: column; align-items: center; padding: 10px 0; gap: 14px; }
     .tab-btn { background: none; border: none; color: #94a3b8; font-size: 10px; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; width: 100%; }
     .tab-btn.active { color: #38bdf8; font-weight: 700; }
-    .tab-btn span { font-size: 20px; }
+    .tab-btn span { font-size: 18px; }
 
     /* Controls Panel */
-    .panel { width: 280px; background: #111827; border-right: 1px solid #1f2937; padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; }
+    .panel { width: 285px; background: #111827; border-right: 1px solid #1f2937; padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
     .panel-group { display: none; flex-direction: column; gap: 10px; }
     .panel-group.active { display: flex; }
     .panel-title { font-size: 11px; font-weight: 700; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.05em; }
@@ -41,7 +45,7 @@
     .slider-box input { accent-color: #38bdf8; }
 
     /* Workspace */
-    .workspace { flex: 1; display: flex; align-items: center; justify-content: center; background: #030712; position: relative; overflow: auto; padding: 20px; }
+    .workspace { flex: 1; display: flex; align-items: center; justify-content: center; background: #030712; position: relative; overflow: auto; padding: 16px; }
     .canvas-card { border-radius: 8px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.85); border: 1px solid #1f2937; }
     
     #videoContainer { display: none; flex-direction: column; align-items: center; gap: 10px; max-width: 90%; }
@@ -50,7 +54,7 @@
     @media (max-width: 768px) {
       .studio-container { flex-direction: column; }
       .nav-tabs { width: 100%; height: 50px; flex-direction: row; justify-content: space-around; padding: 4px; border-right: none; border-bottom: 1px solid #1f2937; }
-      .panel { width: 100%; max-height: 210px; }
+      .panel { width: 100%; max-height: 220px; }
       .workspace { padding: 10px; }
     }
   </style>
@@ -58,10 +62,11 @@
 <body>
 
   <header>
-    <div class="brand">🚀 SpaceCreator Pro</div>
+    <div class="brand">🚀 SpaceCreator Pro v2</div>
     <div class="header-btns">
-      <button class="btn-top btn-save-png" onclick="exportDesign('png')">⬇️ PNG</button>
-      <button class="btn-top btn-save-jpg" onclick="exportDesign('jpeg')">⬇️ JPG</button>
+      <button class="btn-top btn-save-png" onclick="exportDesign('png')">PNG</button>
+      <button class="btn-top btn-save-jpg" onclick="exportDesign('jpeg')">JPG</button>
+      <button class="btn-top btn-save-pdf" onclick="exportPDF()">PDF</button>
     </div>
   </header>
 
@@ -70,8 +75,9 @@
     <div class="nav-tabs">
       <button class="tab-btn active" onclick="switchTab('canvas')"><span>📐</span>Canvas</button>
       <button class="tab-btn" onclick="switchTab('design')"><span>🎨</span>Design</button>
+      <button class="tab-btn" onclick="switchTab('effects')"><span>✨</span>Effects</button>
+      <button class="tab-btn" onclick="switchTab('stickers')"><span>⭐</span>Stickers</button>
       <button class="tab-btn" onclick="switchTab('layers')"><span>📑</span>Layers</button>
-      <button class="tab-btn" onclick="switchTab('adjust')"><span>✨</span>Filters</button>
       <button class="tab-btn" onclick="switchTab('brush')"><span>🖌️</span>Brush</button>
       <button class="tab-btn" onclick="switchTab('video')"><span>🎬</span>Video</button>
     </div>
@@ -106,14 +112,48 @@
         <div class="panel-title" style="margin-top:6px;">Font & Color</div>
         <select id="fontSelect" class="btn-action" onchange="setFont(this.value)">
           <option value="Poppins">Poppins</option>
-          <option value="Bebas Neue">Bebas Neue (Gaming/YT)</option>
+          <option value="Bebas Neue">Bebas Neue (Viral/Gaming)</option>
           <option value="Montserrat">Montserrat (Bold)</option>
           <option value="Pacifico">Pacifico (Cursive)</option>
         </select>
         <input type="color" id="colorPicker" value="#ffffff" onchange="setColor(this.value)" style="width:100%; height:34px; background:#1f2937; border:none; border-radius:6px; cursor:pointer;">
+
+        <div class="slider-box" style="margin-top:6px;">
+          <span>Opacity / Transparency:</span>
+          <input type="range" min="0.1" max="1" step="0.05" value="1" oninput="setOpacity(this.value)">
+        </div>
       </div>
 
-      <!-- 2. Layers & Transform -->
+      <!-- 2. Text Effects & Styles -->
+      <div id="tab-effects" class="panel-group">
+        <div class="panel-title">Text Stroke & Outline</div>
+        <div class="slider-box">
+          <span>Outline Width:</span>
+          <input type="range" min="0" max="15" step="1" value="0" oninput="setTextStroke(this.value)">
+        </div>
+        <div class="slider-box">
+          <span>Outline Color:</span>
+          <input type="color" value="#000000" onchange="setTextStrokeColor(this.value)" style="width:100%; height:32px; background:#1f2937; border:none; border-radius:6px;">
+        </div>
+
+        <div class="panel-title" style="margin-top:6px;">Shadow & Glow</div>
+        <button class="btn-action" onclick="applyTextShadow('glow')">⚡ Neon Glow Effect</button>
+        <button class="btn-action" onclick="applyTextShadow('drop')">👥 Drop Shadow</button>
+        <button class="btn-action" onclick="applyTextShadow('none')">🚫 Remove Shadow</button>
+      </div>
+
+      <!-- 3. Stickers & Badges -->
+      <div id="tab-stickers" class="panel-group">
+        <div class="panel-title">Quick Badges & Shapes</div>
+        <div class="btn-grid">
+          <button class="btn-action" onclick="addBadge('🔴 LIVE', '#ef4444')">🔴 LIVE Badge</button>
+          <button class="btn-action" onclick="addBadge('🔥 VIRAL', '#f97316')">🔥 VIRAL Tag</button>
+          <button class="btn-action" onclick="addBadge('⭐ PRO', '#eab308')">⭐ PRO Badge</button>
+          <button class="btn-action" onclick="addCircle()">⚪ Add Circle</button>
+        </div>
+      </div>
+
+      <!-- 4. Layers & Transform -->
       <div id="tab-layers" class="panel-group">
         <div class="panel-title">Layer Order</div>
         <div class="btn-grid">
@@ -129,28 +169,7 @@
         <button class="btn-action" style="background:#dc2626; border:none; margin-top:8px;" onclick="deleteSelected()">🗑️ Delete Selected</button>
       </div>
 
-      <!-- 3. Adjustments -->
-      <div id="tab-adjust" class="panel-group">
-        <div class="panel-title">Color Grading</div>
-        <div class="slider-box">
-          <span>Brightness</span>
-          <input type="range" min="-1" max="1" step="0.05" value="0" oninput="applyFilter('brightness', this.value)">
-        </div>
-        <div class="slider-box">
-          <span>Contrast</span>
-          <input type="range" min="-1" max="1" step="0.05" value="0" oninput="applyFilter('contrast', this.value)">
-        </div>
-        <div class="slider-box">
-          <span>Saturation</span>
-          <input type="range" min="-1" max="1" step="0.05" value="0" oninput="applyFilter('saturation', this.value)">
-        </div>
-        <div class="btn-grid">
-          <button class="btn-action" onclick="applyQuickFilter('vintage')">🎞️ Vintage</button>
-          <button class="btn-action" onclick="applyQuickFilter('bw')">⬛ B&W</button>
-        </div>
-      </div>
-
-      <!-- 4. Brush -->
+      <!-- 5. Brush -->
       <div id="tab-brush" class="panel-group">
         <div class="panel-title">Magic Brush Tool</div>
         <button class="btn-action" id="brushToggleBtn" onclick="toggleDrawingMode()">🖌️ Draw / Brush ON</button>
@@ -164,7 +183,7 @@
         </div>
       </div>
 
-      <!-- 5. Video -->
+      <!-- 6. Video -->
       <div id="tab-video" class="panel-group">
         <div class="panel-title">Video Tools</div>
         <label class="btn-action" style="cursor: pointer; background:#7c3aed;">
@@ -192,7 +211,7 @@
       backgroundColor: '#1e293b'
     });
 
-    // Auto-save to LocalStorage
+    // Auto-save Engine
     function saveState() {
       const json = JSON.stringify(canvas.toJSON());
       localStorage.setItem('spacecreator_project', json);
@@ -263,6 +282,21 @@
       canvas.setActiveObject(r);
     }
 
+    function addCircle() {
+      const c = new fabric.Circle({ left: 100, top: 100, radius: 50, fill: '#a855f7' });
+      canvas.add(c);
+      canvas.setActiveObject(c);
+    }
+
+    function addBadge(textStr, color) {
+      const groupRect = new fabric.Rect({ width: 120, height: 40, fill: color, rx: 6, ry: 6 });
+      const groupText = new fabric.Text(textStr, { fontSize: 18, fill: '#ffffff', fontFamily: 'Bebas Neue', originX: 'center', originY: 'center', left: 60, top: 20 });
+      const group = new fabric.Group([groupRect, groupText], { left: 80, top: 80 });
+      canvas.add(group);
+      canvas.setActiveObject(group);
+      saveState();
+    }
+
     function setFont(f) {
       const act = canvas.getActiveObject();
       if (act && act.type === 'i-text') { act.set('fontFamily', f); canvas.renderAll(); saveState(); }
@@ -273,7 +307,37 @@
       if (act) { act.set('fill', c); canvas.renderAll(); saveState(); }
     }
 
-    // Layer Controls
+    function setOpacity(val) {
+      const act = canvas.getActiveObject();
+      if (act) { act.set('opacity', parseFloat(val)); canvas.renderAll(); saveState(); }
+    }
+
+    // Text Stroke & Shadow
+    function setTextStroke(val) {
+      const act = canvas.getActiveObject();
+      if (act && act.type === 'i-text') { act.set('strokeWidth', parseInt(val)); canvas.renderAll(); saveState(); }
+    }
+
+    function setTextStrokeColor(col) {
+      const act = canvas.getActiveObject();
+      if (act && act.type === 'i-text') { act.set('stroke', col); canvas.renderAll(); saveState(); }
+    }
+
+    function applyTextShadow(type) {
+      const act = canvas.getActiveObject();
+      if (!act) return;
+      if (type === 'glow') {
+        act.set('shadow', new fabric.Shadow({ color: '#38bdf8', blur: 20, offsetX: 0, offsetY: 0 }));
+      } else if (type === 'drop') {
+        act.set('shadow', new fabric.Shadow({ color: 'rgba(0,0,0,0.8)', blur: 10, offsetX: 6, offsetY: 6 }));
+      } else {
+        act.set('shadow', null);
+      }
+      canvas.renderAll();
+      saveState();
+    }
+
+    // Layers & Transform
     function bringToFront() {
       const act = canvas.getActiveObject();
       if (act) { canvas.bringToFront(act); canvas.renderAll(); saveState(); }
@@ -284,7 +348,6 @@
       if (act) { canvas.sendToBack(act); canvas.renderAll(); saveState(); }
     }
 
-    // Transform
     function flipX() {
       const act = canvas.getActiveObject();
       if (act) { act.set('flipX', !act.flipX); canvas.renderAll(); saveState(); }
@@ -297,11 +360,7 @@
 
     function rotate90() {
       const act = canvas.getActiveObject();
-      if (act) {
-        act.rotate((act.angle + 90) % 360);
-        canvas.renderAll();
-        saveState();
-      }
+      if (act) { act.rotate((act.angle + 90) % 360); canvas.renderAll(); saveState(); }
     }
 
     function deleteSelected() {
@@ -350,37 +409,6 @@
       if (canvas.freeDrawingBrush) canvas.freeDrawingBrush.color = c;
     }
 
-    // Filters
-    function applyFilter(type, val) {
-      const act = canvas.getActiveObject();
-      if (!act || act.type !== 'image') return;
-      val = parseFloat(val);
-
-      if (type === 'brightness') {
-        act.filters[0] = new fabric.Image.filters.Brightness({ brightness: val });
-      } else if (type === 'contrast') {
-        act.filters[1] = new fabric.Image.filters.Contrast({ contrast: val });
-      } else if (type === 'saturation') {
-        act.filters[2] = new fabric.Image.filters.Saturation({ saturation: val });
-      }
-      act.applyFilters();
-      canvas.renderAll();
-      saveState();
-    }
-
-    function applyQuickFilter(type) {
-      const act = canvas.getActiveObject();
-      if (!act || act.type !== 'image') return;
-      if (type === 'bw') {
-        act.filters[3] = new fabric.Image.filters.Grayscale();
-      } else if (type === 'vintage') {
-        act.filters[3] = new fabric.Image.filters.Sepia();
-      }
-      act.applyFilters();
-      canvas.renderAll();
-      saveState();
-    }
-
     // Video Engine
     const vid = document.getElementById('videoPlayer');
     document.getElementById('videoLoader').addEventListener('change', function(e) {
@@ -411,7 +439,7 @@
       });
     }
 
-    // Export Formats
+    // Export Options
     function exportDesign(format) {
       const link = document.createElement('a');
       link.download = `spacecreator-design.${format === 'jpeg' ? 'jpg' : 'png'}`;
@@ -419,7 +447,18 @@
       link.click();
     }
 
-    // Load saved project on launch
+    function exportPDF() {
+      const { jsPDF } = window.jspdf;
+      const imgData = canvas.toDataURL({ format: 'png', quality: 1.0 });
+      const pdf = new jsPDF({
+        orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
+        unit: 'px',
+        format: [canvas.width, canvas.height]
+      });
+      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+      pdf.save('spacecreator-print.pdf');
+    }
+
     window.addEventListener('load', loadSavedState);
   </script>
 </body>

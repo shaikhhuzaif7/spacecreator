@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SpaceCreator - Canva Studio</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; display: flex; flex-direction: column; height: 100vh; background: #0f172a; color: #fff; }
+    header { background: #1e293b; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #334155; }
+    header h1 { font-size: 18px; font-weight: 700; color: #38bdf8; }
+    .layout { display: flex; flex: 1; overflow: hidden; }
+    .sidebar { width: 220px; background: #1e293b; border-right: 1px solid #334155; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+    .btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 10px; font-size: 14px; font-weight: 600; border-radius: 8px; border: 1px solid #475569; background: #334155; color: #f8fafc; cursor: pointer; transition: 0.2s; }
+    .btn:hover { background: #475569; }
+    .btn-download { background: #0284c7; border: none; margin-top: auto; color: white; }
+    .btn-download:hover { background: #0369a1; }
+    .btn-delete { background: #ef4444; border: none; color: white; }
+    .btn-delete:hover { background: #dc2626; }
+    .workspace { flex: 1; display: flex; align-items: center; justify-content: center; background: #090d16; padding: 20px; overflow: auto; }
+    .canvas-box { border-radius: 8px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.6); }
+    @media (max-width: 600px) {
+      .layout { flex-direction: column; }
+      .sidebar { width: 100%; flex-direction: row; flex-wrap: wrap; }
+      .btn { flex: 1; min-width: 120px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🚀 SpaceCreator Studio</h1>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <button class="btn" onclick="addText()">✏️ Add Text</button>
+      <button class="btn" onclick="addBox()">⬛ Add Shape</button>
+      <label class="btn" style="cursor: pointer;">
+        🖼️ Upload Photo
+        <input type="file" id="uploadImg" accept="image/*" style="display:none;">
+      </label>
+      <button class="btn btn-delete" onclick="deleteActive()">🗑️ Delete</button>
+      <button class="btn btn-download" onclick="saveDesign()">⬇️ Download PNG</button>
+    </aside>
+
+    <main class="workspace">
+      <div class="canvas-box">
+        <canvas id="mainCanvas" width="600" height="400"></canvas>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const canvas = new fabric.Canvas('mainCanvas', {
+      backgroundColor: '#ffffff'
+    });
+
+    function addText() {
+      const text = new fabric.IText('Yahan Likhein', {
+        left: 100,
+        top: 100,
+        fill: '#0f172a',
+        fontSize: 26,
+        fontFamily: 'sans-serif'
+      });
+      canvas.add(text);
+      canvas.setActiveObject(text);
+    }
+
+    function addBox() {
+      const rect = new fabric.Rect({
+        left: 150,
+        top: 120,
+        width: 120,
+        height: 80,
+        fill: '#38bdf8',
+        rx: 8,
+        ry: 8
+      });
+      canvas.add(rect);
+      canvas.setActiveObject(rect);
+    }
+
+    document.getElementById('uploadImg').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const img = new Image();
+        img.src = evt.target.result;
+        img.onload = function() {
+          const fabricImg = new fabric.Image(img);
+          fabricImg.scaleToWidth(220);
+          canvas.centerObject(fabricImg);
+          canvas.add(fabricImg);
+          canvas.renderAll();
+        };
+      };
+      reader.readAsDataURL(file);
+    });
+
+    function deleteActive() {
+      const item = canvas.getActiveObject();
+      if (item) canvas.remove(item);
+    }
+
+    function saveDesign() {
+      const link = document.createElement('a');
+      link.download = 'spacecreator-design.png';
+      link.href = canvas.toDataURL({ format: 'png', quality: 1.0, multiplier: 2 });
+      link.click();
+    }
+  </script>
+</body>
+</html>

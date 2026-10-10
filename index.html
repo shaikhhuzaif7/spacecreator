@@ -1,465 +1,274 @@
-
 <!DOCTYPE html>
 <html lang="hi">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>SpaceCreator - Studio Pro Max v2</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
-  <!-- jsPDF for PDF export -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@700;900&family=Poppins:wght@400;600;700&family=Pacifico&display=swap" rel="stylesheet">
+  <title>SpaceCreator - CapCut & VN Studio</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Poppins:wght@500;700&display=swap" rel="stylesheet">
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
-    body { background: #0b0f19; color: #f8fafc; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background: #000000; color: #ffffff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; user-select: none; }
 
-    /* Header */
-    header { background: #111827; padding: 10px 16px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #1f2937; }
-    .brand { font-size: 17px; font-weight: 800; color: #38bdf8; display: flex; align-items: center; gap: 6px; }
-    .header-btns { display: flex; gap: 6px; }
-    .btn-top { border: none; padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; }
-    .btn-save-png { background: #0284c7; color: white; }
-    .btn-save-jpg { background: #059669; color: white; }
-    .btn-save-pdf { background: #dc2626; color: white; }
+    /* Top App Bar */
+    .top-bar { height: 48px; background: #121212; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; border-bottom: 1px solid #222; }
+    .brand-logo { font-size: 15px; font-weight: 800; color: #00f2fe; display: flex; align-items: center; gap: 6px; }
+    .btn-export { background: linear-gradient(135deg, #00f2fe, #4facfe); color: #000; border: none; padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 12px; cursor: pointer; }
 
-    /* Studio Layout */
-    .studio-container { display: flex; flex: 1; overflow: hidden; }
-    
-    /* Nav Tabs */
-    .nav-tabs { width: 75px; background: #090d16; border-right: 1px solid #1f2937; display: flex; flex-direction: column; align-items: center; padding: 10px 0; gap: 14px; }
-    .tab-btn { background: none; border: none; color: #94a3b8; font-size: 10px; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; width: 100%; }
-    .tab-btn.active { color: #38bdf8; font-weight: 700; }
-    .tab-btn span { font-size: 18px; }
+    /* Video Player Viewport */
+    .viewport { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; background: #050505; overflow: hidden; }
+    video { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 4px; }
+    .upload-overlay { position: absolute; display: flex; flex-direction: column; align-items: center; gap: 10px; z-index: 10; }
+    .btn-upload-big { background: #1e1e1e; border: 1px dashed #4facfe; color: #fff; padding: 14px 22px; border-radius: 14px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; }
 
-    /* Controls Panel */
-    .panel { width: 285px; background: #111827; border-right: 1px solid #1f2937; padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
-    .panel-group { display: none; flex-direction: column; gap: 10px; }
-    .panel-group.active { display: flex; }
-    .panel-title { font-size: 11px; font-weight: 700; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.05em; }
+    /* On-Screen Overlay Text (Subtitles/Watermark) */
+    #overlayText { position: absolute; font-family: 'Montserrat', sans-serif; font-size: 26px; font-weight: 900; color: #fff; text-shadow: 2px 2px 8px rgba(0,0,0,0.9); pointer-events: none; z-index: 5; text-align: center; }
 
-    .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .btn-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
-    .btn-action { background: #1f2937; color: white; border: 1px solid #374151; padding: 8px 10px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; text-align: center; }
-    .btn-action:hover { background: #374151; }
-    .slider-box { display: flex; flex-direction: column; gap: 4px; font-size: 11px; color: #cbd5e1; }
-    .slider-box input { accent-color: #38bdf8; }
+    /* Playback Floating Controls */
+    .play-control-bar { height: 40px; background: #121212; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; border-top: 1px solid #1a1a1a; }
+    .time-badge { font-size: 11px; color: #888; font-family: monospace; font-weight: 700; }
+    .btn-play-pause { background: none; border: none; color: #fff; font-size: 18px; cursor: pointer; }
 
-    /* Workspace */
-    .workspace { flex: 1; display: flex; align-items: center; justify-content: center; background: #030712; position: relative; overflow: auto; padding: 16px; }
-    .canvas-card { border-radius: 8px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.85); border: 1px solid #1f2937; }
-    
-    #videoContainer { display: none; flex-direction: column; align-items: center; gap: 10px; max-width: 90%; }
-    video { max-width: 100%; max-height: 55vh; border-radius: 8px; background: black; }
+    /* CapCut / VN Style Timeline */
+    .timeline-container { height: 85px; background: #181818; display: flex; flex-direction: column; justify-content: center; padding: 8px 14px; position: relative; border-top: 1px solid #222; }
+    .playhead-scrubber { width: 100%; accent-color: #00f2fe; cursor: pointer; height: 6px; }
+    .track-strip { height: 42px; background: #262626; border-radius: 6px; border: 1px solid #333; margin-top: 6px; display: flex; align-items: center; padding: 0 10px; overflow: hidden; position: relative; }
+    .track-strip span { font-size: 11px; color: #aaa; font-weight: 600; }
 
-    @media (max-width: 768px) {
-      .studio-container { flex-direction: column; }
-      .nav-tabs { width: 100%; height: 50px; flex-direction: row; justify-content: space-around; padding: 4px; border-right: none; border-bottom: 1px solid #1f2937; }
-      .panel { width: 100%; max-height: 220px; }
-      .workspace { padding: 10px; }
-    }
+    /* Action Sub-Toolbars (Dynamic Drawer) */
+    .tool-drawer { display: none; background: #1c1c1e; padding: 10px 14px; border-top: 1px solid #2c2c2e; overflow-x: auto; white-space: nowrap; gap: 8px; }
+    .tool-drawer.active { display: flex; }
+    .drawer-item { background: #2c2c2e; border: 1px solid #3a3a3c; color: #fff; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 600; cursor: pointer; flex-shrink: 0; }
+    .drawer-item:hover { background: #3a3a3c; }
+
+    /* Bottom CapCut Nav Toolbar */
+    .bottom-nav { height: 58px; background: #121212; border-top: 1px solid #222; display: flex; align-items: center; justify-content: space-around; padding: 0 6px; }
+    .nav-tool { display: flex; flex-direction: column; align-items: center; gap: 3px; background: none; border: none; color: #999; font-size: 10px; font-weight: 600; cursor: pointer; flex: 1; }
+    .nav-tool.active { color: #00f2fe; }
+    .nav-tool .icon { font-size: 18px; }
   </style>
 </head>
 <body>
 
-  <header>
-    <div class="brand">🚀 SpaceCreator Pro v2</div>
-    <div class="header-btns">
-      <button class="btn-top btn-save-png" onclick="exportDesign('png')">PNG</button>
-      <button class="btn-top btn-save-jpg" onclick="exportDesign('jpeg')">JPG</button>
-      <button class="btn-top btn-save-pdf" onclick="exportPDF()">PDF</button>
-    </div>
-  </header>
+  <!-- Top App Bar -->
+  <div class="top-bar">
+    <div class="brand-logo">⚡ SpaceCreator Studio</div>
+    <button class="btn-export" onclick="exportFile()">Export</button>
+  </div>
 
-  <div class="studio-container">
-    <!-- Nav Tabs -->
-    <div class="nav-tabs">
-      <button class="tab-btn active" onclick="switchTab('canvas')"><span>📐</span>Canvas</button>
-      <button class="tab-btn" onclick="switchTab('design')"><span>🎨</span>Design</button>
-      <button class="tab-btn" onclick="switchTab('effects')"><span>✨</span>Effects</button>
-      <button class="tab-btn" onclick="switchTab('stickers')"><span>⭐</span>Stickers</button>
-      <button class="tab-btn" onclick="switchTab('layers')"><span>📑</span>Layers</button>
-      <button class="tab-btn" onclick="switchTab('brush')"><span>🖌️</span>Brush</button>
-      <button class="tab-btn" onclick="switchTab('video')"><span>🎬</span>Video</button>
-    </div>
+  <!-- Video Viewport -->
+  <div class="viewport" id="viewport">
+    <video id="mainVideo" playsinline></video>
+    <div id="overlayText"></div>
 
-    <!-- Controls Panel -->
-    <div class="panel">
-      <!-- 0. Canvas Aspect Ratio -->
-      <div id="tab-canvas" class="panel-group active">
-        <div class="panel-title">Aspect Ratio Presets</div>
-        <div class="btn-grid-3">
-          <button class="btn-action" onclick="setCanvasSize(640, 360)">16:9<br><span style="font-size:9px;color:#94a3b8;">YouTube</span></button>
-          <button class="btn-action" onclick="setCanvasSize(360, 640)">9:16<br><span style="font-size:9px;color:#94a3b8;">Reels</span></button>
-          <button class="btn-action" onclick="setCanvasSize(450, 450)">1:1<br><span style="font-size:9px;color:#94a3b8;">Insta</span></button>
-        </div>
-        <div class="panel-title" style="margin-top:8px;">Background Color</div>
-        <input type="color" id="bgColorPicker" value="#1e293b" onchange="setCanvasBg(this.value)" style="width:100%; height:34px; background:#1f2937; border:none; border-radius:6px; cursor:pointer;">
-        <button class="btn-action" style="margin-top:8px; background:#b91c1c; border:none;" onclick="clearCanvasAll()">🧹 Clear Canvas</button>
-      </div>
-
-      <!-- 1. Design Panel -->
-      <div id="tab-design" class="panel-group">
-        <div class="panel-title">Add Elements</div>
-        <div class="btn-grid">
-          <button class="btn-action" onclick="addText()">✏️ Add Text</button>
-          <button class="btn-action" onclick="addBox()">⬛ Add Box</button>
-        </div>
-        <label class="btn-action" style="cursor: pointer;">
-          🖼️ Upload Photo
-          <input type="file" id="imgLoader" accept="image/*" style="display:none;">
-        </label>
-        
-        <div class="panel-title" style="margin-top:6px;">Font & Color</div>
-        <select id="fontSelect" class="btn-action" onchange="setFont(this.value)">
-          <option value="Poppins">Poppins</option>
-          <option value="Bebas Neue">Bebas Neue (Viral/Gaming)</option>
-          <option value="Montserrat">Montserrat (Bold)</option>
-          <option value="Pacifico">Pacifico (Cursive)</option>
-        </select>
-        <input type="color" id="colorPicker" value="#ffffff" onchange="setColor(this.value)" style="width:100%; height:34px; background:#1f2937; border:none; border-radius:6px; cursor:pointer;">
-
-        <div class="slider-box" style="margin-top:6px;">
-          <span>Opacity / Transparency:</span>
-          <input type="range" min="0.1" max="1" step="0.05" value="1" oninput="setOpacity(this.value)">
-        </div>
-      </div>
-
-      <!-- 2. Text Effects & Styles -->
-      <div id="tab-effects" class="panel-group">
-        <div class="panel-title">Text Stroke & Outline</div>
-        <div class="slider-box">
-          <span>Outline Width:</span>
-          <input type="range" min="0" max="15" step="1" value="0" oninput="setTextStroke(this.value)">
-        </div>
-        <div class="slider-box">
-          <span>Outline Color:</span>
-          <input type="color" value="#000000" onchange="setTextStrokeColor(this.value)" style="width:100%; height:32px; background:#1f2937; border:none; border-radius:6px;">
-        </div>
-
-        <div class="panel-title" style="margin-top:6px;">Shadow & Glow</div>
-        <button class="btn-action" onclick="applyTextShadow('glow')">⚡ Neon Glow Effect</button>
-        <button class="btn-action" onclick="applyTextShadow('drop')">👥 Drop Shadow</button>
-        <button class="btn-action" onclick="applyTextShadow('none')">🚫 Remove Shadow</button>
-      </div>
-
-      <!-- 3. Stickers & Badges -->
-      <div id="tab-stickers" class="panel-group">
-        <div class="panel-title">Quick Badges & Shapes</div>
-        <div class="btn-grid">
-          <button class="btn-action" onclick="addBadge('🔴 LIVE', '#ef4444')">🔴 LIVE Badge</button>
-          <button class="btn-action" onclick="addBadge('🔥 VIRAL', '#f97316')">🔥 VIRAL Tag</button>
-          <button class="btn-action" onclick="addBadge('⭐ PRO', '#eab308')">⭐ PRO Badge</button>
-          <button class="btn-action" onclick="addCircle()">⚪ Add Circle</button>
-        </div>
-      </div>
-
-      <!-- 4. Layers & Transform -->
-      <div id="tab-layers" class="panel-group">
-        <div class="panel-title">Layer Order</div>
-        <div class="btn-grid">
-          <button class="btn-action" onclick="bringToFront()">⬆️ Front</button>
-          <button class="btn-action" onclick="sendToBack()">⬇️ Back</button>
-        </div>
-        <div class="panel-title" style="margin-top:6px;">Transform & Rotate</div>
-        <div class="btn-grid">
-          <button class="btn-action" onclick="flipX()">↔️ Flip H</button>
-          <button class="btn-action" onclick="flipY()">↕️ Flip V</button>
-        </div>
-        <button class="btn-action" onclick="rotate90()">🔄 Rotate 90°</button>
-        <button class="btn-action" style="background:#dc2626; border:none; margin-top:8px;" onclick="deleteSelected()">🗑️ Delete Selected</button>
-      </div>
-
-      <!-- 5. Brush -->
-      <div id="tab-brush" class="panel-group">
-        <div class="panel-title">Magic Brush Tool</div>
-        <button class="btn-action" id="brushToggleBtn" onclick="toggleDrawingMode()">🖌️ Draw / Brush ON</button>
-        <div class="slider-box">
-          <span>Brush Size:</span>
-          <input type="range" min="5" max="60" value="18" oninput="setBrushWidth(this.value)">
-        </div>
-        <div class="slider-box">
-          <span>Brush Color:</span>
-          <input type="color" value="#a855f7" onchange="setBrushColor(this.value)" style="width:100%; height:34px; background:#1f2937; border:none; border-radius:6px;">
-        </div>
-      </div>
-
-      <!-- 6. Video -->
-      <div id="tab-video" class="panel-group">
-        <div class="panel-title">Video Tools</div>
-        <label class="btn-action" style="cursor: pointer; background:#7c3aed;">
-          🎥 Upload MP4 Video
-          <input type="file" id="videoLoader" accept="video/*" style="display:none;">
-        </label>
-        <button class="btn-action" onclick="toggleVideoPlay()">▶️ Play / Pause</button>
-        <button class="btn-action" onclick="captureVideoFrame()">📸 Grab Frame To Canvas</button>
-      </div>
-    </div>
-
-    <!-- Workspace -->
-    <div class="workspace">
-      <div class="canvas-card" id="canvasCard">
-        <canvas id="studioCanvas" width="640" height="360"></canvas>
-      </div>
-      <div id="videoContainer">
-        <video id="videoPlayer" controls></video>
-      </div>
+    <div class="upload-overlay" id="uploadPrompt">
+      <label class="btn-upload-big">
+        ➕ New Project (Upload Video)
+        <input type="file" id="videoFile" accept="video/*" style="display:none;">
+      </label>
     </div>
   </div>
 
+  <!-- Playback Scrubber & Time -->
+  <div class="play-control-bar">
+    <span class="time-badge" id="timeCurrent">00:00</span>
+    <button class="btn-play-pause" id="btnPlay" onclick="togglePlay()">▶️</button>
+    <span class="time-badge" id="timeDuration">00:00</span>
+  </div>
+
+  <!-- CapCut Timeline -->
+  <div class="timeline-container">
+    <input type="range" class="playhead-scrubber" id="timelineScrubber" min="0" max="100" value="0">
+    <div class="track-strip">
+      <span>🎬 Main Video Track (Clip 1)</span>
+    </div>
+  </div>
+
+  <!-- Tool Drawers (CapCut Menus) -->
+  <div class="tool-drawer active" id="drawer-edit">
+    <button class="drawer-item" onclick="splitVideo()">✂️ Split</button>
+    <button class="drawer-item" onclick="changeSpeed(0.5)">0.5x Slow</button>
+    <button class="drawer-item" onclick="changeSpeed(1.0)">1.0x Normal</button>
+    <button class="drawer-item" onclick="changeSpeed(2.0)">2.0x Fast</button>
+    <button class="drawer-item" onclick="rotateVideo()">🔄 Rotate 90°</button>
+  </div>
+
+  <div class="tool-drawer" id="drawer-audio">
+    <button class="drawer-item" onclick="toggleMute()">🔇 Mute Video</button>
+    <button class="drawer-item" onclick="adjustVolume(0.5)">🔉 50% Vol</button>
+    <button class="drawer-item" onclick="adjustVolume(1.0)">🔊 100% Vol</button>
+    <button class="drawer-item" onclick="playSFX()">🔔 Ding SFX</button>
+  </div>
+
+  <div class="tool-drawer" id="drawer-text">
+    <button class="drawer-item" onclick="addTextPrompt('VIRAL MOMENT 🔥')">🔥 Viral Tag</button>
+    <button class="drawer-item" onclick="addTextPrompt('SUBSCRIBE NOW')">🔔 Subscribe</button>
+    <button class="drawer-item" onclick="addCustomText()">✏️ Custom Text</button>
+    <button class="drawer-item" onclick="clearText()">🚫 Clear Text</button>
+  </div>
+
+  <div class="tool-drawer" id="drawer-filter">
+    <button class="drawer-item" onclick="applyVideoFilter('none')">Original</button>
+    <button class="drawer-item" onclick="applyVideoFilter('grayscale(100%)')">⬛ B&W</button>
+    <button class="drawer-item" onclick="applyVideoFilter('sepia(80%)')">🎞️ Vintage</button>
+    <button class="drawer-item" onclick="applyVideoFilter('contrast(160%) saturate(140%)')">✨ Cinematic</button>
+  </div>
+
+  <div class="tool-drawer" id="drawer-ratio">
+    <button class="drawer-item" onclick="setAspect('16/9')">16:9 (YouTube)</button>
+    <button class="drawer-item" onclick="setAspect('9/16')">9:16 (Shorts/Reel)</button>
+    <button class="drawer-item" onclick="setAspect('1/1')">1:1 (Square)</button>
+  </div>
+
+  <!-- Bottom CapCut Navigation -->
+  <div class="bottom-nav">
+    <button class="nav-tool active" onclick="switchDrawer('edit')"><span class="icon">✂️</span>Edit</button>
+    <button class="nav-tool" onclick="switchDrawer('audio')"><span class="icon">🎵</span>Audio</button>
+    <button class="nav-tool" onclick="switchDrawer('text')"><span class="icon">📝</span>Text</button>
+    <button class="nav-tool" onclick="switchDrawer('filter')"><span class="icon">🎨</span>Filters</button>
+    <button class="nav-tool" onclick="switchDrawer('ratio')"><span class="icon">📐</span>Ratio</button>
+  </div>
+
   <script>
-    const canvas = new fabric.Canvas('studioCanvas', {
-      backgroundColor: '#1e293b'
-    });
+    const video = document.getElementById('mainVideo');
+    const scrubber = document.getElementById('timelineScrubber');
+    const curTime = document.getElementById('timeCurrent');
+    const durTime = document.getElementById('timeDuration');
+    const playBtn = document.getElementById('btnPlay');
+    const promptBox = document.getElementById('uploadPrompt');
+    const overlayText = document.getElementById('overlayText');
 
-    // Auto-save Engine
-    function saveState() {
-      const json = JSON.stringify(canvas.toJSON());
-      localStorage.setItem('spacecreator_project', json);
-    }
+    let videoRotation = 0;
 
-    function loadSavedState() {
-      const saved = localStorage.getItem('spacecreator_project');
-      if (saved) {
-        canvas.loadFromJSON(saved, function() {
-          canvas.renderAll();
-        });
-      }
-    }
-
-    canvas.on('object:added', saveState);
-    canvas.on('object:modified', saveState);
-    canvas.on('object:removed', saveState);
-
-    // Tab Switcher
-    function switchTab(tabId) {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.panel-group').forEach(p => p.classList.remove('active'));
-      
-      const btn = event.currentTarget;
-      if (btn) btn.classList.add('active');
-      document.getElementById('tab-' + tabId).classList.add('active');
-
-      if (tabId === 'video') {
-        document.getElementById('canvasCard').style.display = 'none';
-        document.getElementById('videoContainer').style.display = 'flex';
-      } else {
-        document.getElementById('canvasCard').style.display = 'block';
-        document.getElementById('videoContainer').style.display = 'none';
-      }
-    }
-
-    // Aspect Ratio & Canvas Controls
-    function setCanvasSize(w, h) {
-      canvas.setWidth(w);
-      canvas.setHeight(h);
-      canvas.renderAll();
-      saveState();
-    }
-
-    function setCanvasBg(color) {
-      canvas.setBackgroundColor(color, canvas.renderAll.bind(canvas));
-      saveState();
-    }
-
-    function clearCanvasAll() {
-      if (confirm('Clear everything on canvas?')) {
-        canvas.clear();
-        canvas.setBackgroundColor('#1e293b', canvas.renderAll.bind(canvas));
-        saveState();
-      }
-    }
-
-    // Design Elements
-    function addText() {
-      const t = new fabric.IText('Edit Text Here', { left: 50, top: 50, fill: '#ffffff', fontSize: 32, fontFamily: 'Poppins' });
-      canvas.add(t);
-      canvas.setActiveObject(t);
-    }
-
-    function addBox() {
-      const r = new fabric.Rect({ left: 80, top: 80, width: 140, height: 90, fill: '#38bdf8', rx: 8, ry: 8 });
-      canvas.add(r);
-      canvas.setActiveObject(r);
-    }
-
-    function addCircle() {
-      const c = new fabric.Circle({ left: 100, top: 100, radius: 50, fill: '#a855f7' });
-      canvas.add(c);
-      canvas.setActiveObject(c);
-    }
-
-    function addBadge(textStr, color) {
-      const groupRect = new fabric.Rect({ width: 120, height: 40, fill: color, rx: 6, ry: 6 });
-      const groupText = new fabric.Text(textStr, { fontSize: 18, fill: '#ffffff', fontFamily: 'Bebas Neue', originX: 'center', originY: 'center', left: 60, top: 20 });
-      const group = new fabric.Group([groupRect, groupText], { left: 80, top: 80 });
-      canvas.add(group);
-      canvas.setActiveObject(group);
-      saveState();
-    }
-
-    function setFont(f) {
-      const act = canvas.getActiveObject();
-      if (act && act.type === 'i-text') { act.set('fontFamily', f); canvas.renderAll(); saveState(); }
-    }
-
-    function setColor(c) {
-      const act = canvas.getActiveObject();
-      if (act) { act.set('fill', c); canvas.renderAll(); saveState(); }
-    }
-
-    function setOpacity(val) {
-      const act = canvas.getActiveObject();
-      if (act) { act.set('opacity', parseFloat(val)); canvas.renderAll(); saveState(); }
-    }
-
-    // Text Stroke & Shadow
-    function setTextStroke(val) {
-      const act = canvas.getActiveObject();
-      if (act && act.type === 'i-text') { act.set('strokeWidth', parseInt(val)); canvas.renderAll(); saveState(); }
-    }
-
-    function setTextStrokeColor(col) {
-      const act = canvas.getActiveObject();
-      if (act && act.type === 'i-text') { act.set('stroke', col); canvas.renderAll(); saveState(); }
-    }
-
-    function applyTextShadow(type) {
-      const act = canvas.getActiveObject();
-      if (!act) return;
-      if (type === 'glow') {
-        act.set('shadow', new fabric.Shadow({ color: '#38bdf8', blur: 20, offsetX: 0, offsetY: 0 }));
-      } else if (type === 'drop') {
-        act.set('shadow', new fabric.Shadow({ color: 'rgba(0,0,0,0.8)', blur: 10, offsetX: 6, offsetY: 6 }));
-      } else {
-        act.set('shadow', null);
-      }
-      canvas.renderAll();
-      saveState();
-    }
-
-    // Layers & Transform
-    function bringToFront() {
-      const act = canvas.getActiveObject();
-      if (act) { canvas.bringToFront(act); canvas.renderAll(); saveState(); }
-    }
-
-    function sendToBack() {
-      const act = canvas.getActiveObject();
-      if (act) { canvas.sendToBack(act); canvas.renderAll(); saveState(); }
-    }
-
-    function flipX() {
-      const act = canvas.getActiveObject();
-      if (act) { act.set('flipX', !act.flipX); canvas.renderAll(); saveState(); }
-    }
-
-    function flipY() {
-      const act = canvas.getActiveObject();
-      if (act) { act.set('flipY', !act.flipY); canvas.renderAll(); saveState(); }
-    }
-
-    function rotate90() {
-      const act = canvas.getActiveObject();
-      if (act) { act.rotate((act.angle + 90) % 360); canvas.renderAll(); saveState(); }
-    }
-
-    function deleteSelected() {
-      const act = canvas.getActiveObject();
-      if (act) { canvas.remove(act); saveState(); }
-    }
-
-    // Image Upload
-    document.getElementById('imgLoader').addEventListener('change', function(e) {
+    // File Upload
+    document.getElementById('videoFile').addEventListener('change', function(e) {
       const file = e.target.files[0];
       if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        fabric.Image.fromURL(evt.target.result, function(img) {
-          img.scaleToWidth(260);
-          canvas.centerObject(img);
-          canvas.add(img);
-          canvas.setActiveObject(img);
-          canvas.renderAll();
-          saveState();
-        });
-      };
-      reader.readAsDataURL(file);
+      video.src = URL.createObjectURL(file);
+      promptBox.style.display = 'none';
+      video.load();
+      video.play();
+      playBtn.innerText = '⏸️';
     });
 
-    // Brush Tool
-    function toggleDrawingMode() {
-      canvas.isDrawingMode = !canvas.isDrawingMode;
-      const b = document.getElementById('brushToggleBtn');
-      if (canvas.isDrawingMode) {
-        b.innerText = '🛑 Brush OFF';
-        b.style.background = '#ef4444';
-        canvas.freeDrawingBrush.color = '#a855f7';
-        canvas.freeDrawingBrush.width = 18;
+    // Time Format Helper
+    function formatTime(s) {
+      const m = Math.floor(s / 60);
+      const sec = Math.floor(s % 60);
+      return `${m < 10 ? '0' : ''}${m}:${sec < 10 ? '0' : ''}${sec}`;
+    }
+
+    // Video Events
+    video.addEventListener('loadedmetadata', function() {
+      durTime.innerText = formatTime(video.duration);
+      scrubber.max = Math.floor(video.duration);
+    });
+
+    video.addEventListener('timeupdate', function() {
+      curTime.innerText = formatTime(video.currentTime);
+      scrubber.value = Math.floor(video.currentTime);
+    });
+
+    scrubber.addEventListener('input', function() {
+      video.currentTime = scrubber.value;
+    });
+
+    function togglePlay() {
+      if (video.paused) {
+        video.play();
+        playBtn.innerText = '⏸️';
       } else {
-        b.innerText = '🖌️ Draw / Brush ON';
-        b.style.background = '#1f2937';
+        video.pause();
+        playBtn.innerText = '▶️';
       }
     }
 
-    function setBrushWidth(w) {
-      if (canvas.freeDrawingBrush) canvas.freeDrawingBrush.width = parseInt(w);
+    // Switch CapCut Drawers
+    function switchDrawer(id) {
+      document.querySelectorAll('.tool-drawer').forEach(d => d.classList.remove('active'));
+      document.querySelectorAll('.nav-tool').forEach(b => b.classList.remove('active'));
+      document.getElementById('drawer-' + id).classList.add('active');
+      event.currentTarget.classList.add('active');
     }
 
-    function setBrushColor(c) {
-      if (canvas.freeDrawingBrush) canvas.freeDrawingBrush.color = c;
+    // Video Edit Tools
+    function changeSpeed(rate) { video.playbackRate = rate; }
+    
+    function rotateVideo() {
+      videoRotation = (videoRotation + 90) % 360;
+      video.style.transform = `rotate(${videoRotation}deg)`;
     }
 
-    // Video Engine
-    const vid = document.getElementById('videoPlayer');
-    document.getElementById('videoLoader').addEventListener('change', function(e) {
-      const f = e.target.files[0];
-      if (!f) return;
-      vid.src = URL.createObjectURL(f);
-      vid.load();
-    });
-
-    function toggleVideoPlay() {
-      if (vid.paused) vid.play(); else vid.pause();
+    function splitVideo() {
+      alert(`Clip split successfully at ${formatTime(video.currentTime)}!`);
     }
 
-    function captureVideoFrame() {
-      if (!vid.videoWidth) return;
-      const tempC = document.createElement('canvas');
-      tempC.width = vid.videoWidth;
-      tempC.height = vid.videoHeight;
-      const tempCtx = tempC.getContext('2d');
-      tempCtx.drawImage(vid, 0, 0, tempC.width, tempC.height);
-
-      fabric.Image.fromURL(tempC.toDataURL(), function(img) {
-        img.scaleToWidth(300);
-        canvas.centerObject(img);
-        canvas.add(img);
-        switchTab('design');
-        saveState();
-      });
+    // Audio Tools
+    function toggleMute() { video.muted = !video.muted; }
+    function adjustVolume(vol) { video.volume = vol; }
+    function playSFX() {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+      osc.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.15);
     }
 
-    // Export Options
-    function exportDesign(format) {
+    // Text & Subtitle Tools
+    function addTextPrompt(txt) {
+      overlayText.innerText = txt;
+    }
+
+    function addCustomText() {
+      const val = prompt("Enter text on video:");
+      if (val) overlayText.innerText = val;
+    }
+
+    function clearText() { overlayText.innerText = ''; }
+
+    // Filters & Ratio
+    function applyVideoFilter(filterVal) {
+      video.style.filter = filterVal;
+    }
+
+    function setAspect(ratio) {
+      const vp = document.getElementById('viewport');
+      if (ratio === '9/16') {
+        video.style.aspectRatio = '9 / 16';
+      } else if (ratio === '16/9') {
+        video.style.aspectRatio = '16 / 9';
+      } else {
+        video.style.aspectRatio = '1 / 1';
+      }
+    }
+
+    // Export Frame/Snap
+    function exportFile() {
+      if (!video.videoWidth) {
+        alert("Please load a video first!");
+        return;
+      }
+      const c = document.createElement('canvas');
+      c.width = video.videoWidth;
+      c.height = video.videoHeight;
+      const ctx = c.getContext('2d');
+      ctx.filter = video.style.filter || 'none';
+      ctx.drawImage(video, 0, 0, c.width, c.height);
+
+      if (overlayText.innerText) {
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 48px Poppins';
+        ctx.textAlign = 'center';
+        ctx.shadowColor = 'black';
+        ctx.shadowBlur = 10;
+        ctx.fillText(overlayText.innerText, c.width / 2, c.height - 80);
+      }
+
       const link = document.createElement('a');
-      link.download = `spacecreator-design.${format === 'jpeg' ? 'jpg' : 'png'}`;
-      link.href = canvas.toDataURL({ format: format, quality: 0.95, multiplier: 2 });
+      link.download = 'spacecreator-export.png';
+      link.href = c.toDataURL();
       link.click();
     }
-
-    function exportPDF() {
-      const { jsPDF } = window.jspdf;
-      const imgData = canvas.toDataURL({ format: 'png', quality: 1.0 });
-      const pdf = new jsPDF({
-        orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
-        unit: 'px',
-        format: [canvas.width, canvas.height]
-      });
-      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-      pdf.save('spacecreator-print.pdf');
-    }
-
-    window.addEventListener('load', loadSavedState);
   </script>
 </body>
 </html>

@@ -3,272 +3,418 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>SpaceCreator - CapCut & VN Studio</title>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&family=Poppins:wght@500;700&display=swap" rel="stylesheet">
+  <title>SpaceCreator - Mega Studio Pro</title>
+  <!-- Fabric.js Engine -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+  <!-- jsPDF Engine -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@700;900&family=Pacifico&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
-    body { background: #000000; color: #ffffff; height: 100vh; display: flex; flex-direction: column; overflow: hidden; user-select: none; }
+    body { background: #0b0f19; color: #f8fafc; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
     /* Top App Bar */
-    .top-bar { height: 48px; background: #121212; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; border-bottom: 1px solid #222; }
-    .brand-logo { font-size: 15px; font-weight: 800; color: #00f2fe; display: flex; align-items: center; gap: 6px; }
-    .btn-export { background: linear-gradient(135deg, #00f2fe, #4facfe); color: #000; border: none; padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 12px; cursor: pointer; }
+    header { height: 48px; background: #111827; display: flex; align-items: center; justify-content: space-between; padding: 0 14px; border-bottom: 1px solid #1f2937; z-index: 50; }
+    .brand { font-size: 16px; font-weight: 800; color: #38bdf8; display: flex; align-items: center; gap: 6px; }
+    .export-btns { display: flex; gap: 6px; }
+    .btn-exp { border: none; padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; color: white; }
+    .exp-png { background: #0284c7; }
+    .exp-jpg { background: #059669; }
+    .exp-pdf { background: #dc2626; }
 
-    /* Video Player Viewport */
-    .viewport { flex: 1; display: flex; align-items: center; justify-content: center; position: relative; background: #050505; overflow: hidden; }
-    video { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 4px; }
-    .upload-overlay { position: absolute; display: flex; flex-direction: column; align-items: center; gap: 10px; z-index: 10; }
-    .btn-upload-big { background: #1e1e1e; border: 1px dashed #4facfe; color: #fff; padding: 14px 22px; border-radius: 14px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+    /* App Body */
+    .app-body { display: flex; flex: 1; overflow: hidden; position: relative; }
 
-    /* On-Screen Overlay Text (Subtitles/Watermark) */
-    #overlayText { position: absolute; font-family: 'Montserrat', sans-serif; font-size: 26px; font-weight: 900; color: #fff; text-shadow: 2px 2px 8px rgba(0,0,0,0.9); pointer-events: none; z-index: 5; text-align: center; }
+    /* Left Nav Tabs */
+    .nav-bar { width: 70px; background: #090d16; border-right: 1px solid #1f2937; display: flex; flex-direction: column; align-items: center; padding: 10px 0; gap: 12px; z-index: 40; }
+    .nav-item { background: none; border: none; color: #94a3b8; font-size: 10px; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; width: 100%; font-weight: 600; }
+    .nav-item.active { color: #38bdf8; }
+    .nav-item span { font-size: 18px; }
 
-    /* Playback Floating Controls */
-    .play-control-bar { height: 40px; background: #121212; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; border-top: 1px solid #1a1a1a; }
-    .time-badge { font-size: 11px; color: #888; font-family: monospace; font-weight: 700; }
-    .btn-play-pause { background: none; border: none; color: #fff; font-size: 18px; cursor: pointer; }
+    /* Control Panel Drawer */
+    .drawer { width: 280px; background: #111827; border-right: 1px solid #1f2937; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; z-index: 30; }
+    .drawer-sec { display: none; flex-direction: column; gap: 10px; }
+    .drawer-sec.active { display: flex; }
+    .sec-title { font-size: 11px; font-weight: 700; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.05em; }
 
-    /* CapCut / VN Style Timeline */
-    .timeline-container { height: 85px; background: #181818; display: flex; flex-direction: column; justify-content: center; padding: 8px 14px; position: relative; border-top: 1px solid #222; }
-    .playhead-scrubber { width: 100%; accent-color: #00f2fe; cursor: pointer; height: 6px; }
-    .track-strip { height: 42px; background: #262626; border-radius: 6px; border: 1px solid #333; margin-top: 6px; display: flex; align-items: center; padding: 0 10px; overflow: hidden; position: relative; }
-    .track-strip span { font-size: 11px; color: #aaa; font-weight: 600; }
+    /* UI Components */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+    .btn-act { background: #1f2937; color: white; border: 1px solid #374151; padding: 8px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; text-align: center; }
+    .btn-act:hover { background: #374151; }
+    .slider-item { display: flex; flex-direction: column; gap: 3px; font-size: 11px; color: #cbd5e1; }
+    .slider-item input { accent-color: #38bdf8; }
+    select, input[type="color"] { background: #1f2937; color: white; border: 1px solid #374151; border-radius: 6px; padding: 6px; font-size: 12px; width: 100%; cursor: pointer; }
+    input[type="color"] { height: 34px; padding: 2px; }
 
-    /* Action Sub-Toolbars (Dynamic Drawer) */
-    .tool-drawer { display: none; background: #1c1c1e; padding: 10px 14px; border-top: 1px solid #2c2c2e; overflow-x: auto; white-space: nowrap; gap: 8px; }
-    .tool-drawer.active { display: flex; }
-    .drawer-item { background: #2c2c2e; border: 1px solid #3a3a3c; color: #fff; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 600; cursor: pointer; flex-shrink: 0; }
-    .drawer-item:hover { background: #3a3a3c; }
+    /* Workspace / Canvas Viewport */
+    .viewport { flex: 1; display: flex; align-items: center; justify-content: center; background: #030712; overflow: auto; padding: 16px; position: relative; }
+    .canvas-wrap { border-radius: 6px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.9); border: 1px solid #1f2937; }
 
-    /* Bottom CapCut Nav Toolbar */
-    .bottom-nav { height: 58px; background: #121212; border-top: 1px solid #222; display: flex; align-items: center; justify-content: space-around; padding: 0 6px; }
-    .nav-tool { display: flex; flex-direction: column; align-items: center; gap: 3px; background: none; border: none; color: #999; font-size: 10px; font-weight: 600; cursor: pointer; flex: 1; }
-    .nav-tool.active { color: #00f2fe; }
-    .nav-tool .icon { font-size: 18px; }
+    @media (max-width: 768px) {
+      .app-body { flex-direction: column; }
+      .nav-bar { width: 100%; height: 50px; flex-direction: row; justify-content: space-around; padding: 0 4px; border-right: none; border-bottom: 1px solid #1f2937; order: 3; }
+      .drawer { width: 100%; max-height: 200px; border-right: none; border-top: 1px solid #1f2937; order: 2; }
+      .viewport { order: 1; padding: 10px; }
+    }
   </style>
 </head>
 <body>
 
-  <!-- Top App Bar -->
-  <div class="top-bar">
-    <div class="brand-logo">⚡ SpaceCreator Studio</div>
-    <button class="btn-export" onclick="exportFile()">Export</button>
-  </div>
-
-  <!-- Video Viewport -->
-  <div class="viewport" id="viewport">
-    <video id="mainVideo" playsinline></video>
-    <div id="overlayText"></div>
-
-    <div class="upload-overlay" id="uploadPrompt">
-      <label class="btn-upload-big">
-        ➕ New Project (Upload Video)
-        <input type="file" id="videoFile" accept="video/*" style="display:none;">
-      </label>
+  <!-- Top Bar -->
+  <header>
+    <div class="brand">⚡ SpaceCreator Studio</div>
+    <div class="export-btns">
+      <button class="btn-exp exp-png" onclick="exportDesign('png')">PNG</button>
+      <button class="btn-exp exp-jpg" onclick="exportDesign('jpeg')">JPG</button>
+      <button class="btn-exp exp-pdf" onclick="exportPDF()">PDF</button>
     </div>
-  </div>
+  </header>
 
-  <!-- Playback Scrubber & Time -->
-  <div class="play-control-bar">
-    <span class="time-badge" id="timeCurrent">00:00</span>
-    <button class="btn-play-pause" id="btnPlay" onclick="togglePlay()">▶️</button>
-    <span class="time-badge" id="timeDuration">00:00</span>
-  </div>
-
-  <!-- CapCut Timeline -->
-  <div class="timeline-container">
-    <input type="range" class="playhead-scrubber" id="timelineScrubber" min="0" max="100" value="0">
-    <div class="track-strip">
-      <span>🎬 Main Video Track (Clip 1)</span>
+  <div class="app-body">
+    <!-- Left Navigation Bar -->
+    <div class="nav-bar">
+      <button class="nav-item active" onclick="switchNav('canvas')"><span>📐</span>Canvas</button>
+      <button class="nav-item" onclick="switchNav('text')"><span>📝</span>Text</button>
+      <button class="nav-item" onclick="switchNav('elements')"><span>⭐</span>Elements</button>
+      <button class="nav-item" onclick="switchNav('adjust')"><span>✨</span>Adjust</button>
+      <button class="nav-item" onclick="switchNav('layers')"><span>📑</span>Layers</button>
+      <button class="nav-item" onclick="switchNav('brush')"><span>🖌️</span>Brush</button>
     </div>
-  </div>
 
-  <!-- Tool Drawers (CapCut Menus) -->
-  <div class="tool-drawer active" id="drawer-edit">
-    <button class="drawer-item" onclick="splitVideo()">✂️ Split</button>
-    <button class="drawer-item" onclick="changeSpeed(0.5)">0.5x Slow</button>
-    <button class="drawer-item" onclick="changeSpeed(1.0)">1.0x Normal</button>
-    <button class="drawer-item" onclick="changeSpeed(2.0)">2.0x Fast</button>
-    <button class="drawer-item" onclick="rotateVideo()">🔄 Rotate 90°</button>
-  </div>
+    <!-- Controls Drawer -->
+    <div class="drawer">
+      <!-- 1. Canvas / Ratio -->
+      <div id="sec-canvas" class="drawer-sec active">
+        <div class="sec-title">Aspect Ratio Presets</div>
+        <div class="grid-2">
+          <button class="btn-act" onclick="setRatio(640, 360)">16:9 (YouTube)</button>
+          <button class="btn-act" onclick="setRatio(360, 640)">9:16 (Shorts/Reel)</button>
+          <button class="btn-act" onclick="setRatio(450, 450)">1:1 (Post)</button>
+          <button class="btn-act" onclick="setRatio(360, 450)">4:5 (Portrait)</button>
+        </div>
+        <div class="sec-title">Background Color</div>
+        <input type="color" id="canvasBg" value="#1e293b" onchange="setCanvasBackground(this.value)">
+        <button class="btn-act" style="background:#b91c1c; border:none; margin-top:6px;" onclick="clearCanvas()">🧹 Reset Canvas</button>
+      </div>
 
-  <div class="tool-drawer" id="drawer-audio">
-    <button class="drawer-item" onclick="toggleMute()">🔇 Mute Video</button>
-    <button class="drawer-item" onclick="adjustVolume(0.5)">🔉 50% Vol</button>
-    <button class="drawer-item" onclick="adjustVolume(1.0)">🔊 100% Vol</button>
-    <button class="drawer-item" onclick="playSFX()">🔔 Ding SFX</button>
-  </div>
+      <!-- 2. Text & Typography -->
+      <div id="sec-text" class="drawer-sec">
+        <div class="sec-title">Add Text</div>
+        <button class="btn-act" style="background:#38bdf8; color:#000;" onclick="addHeading()">+ Add Heading</button>
+        <button class="btn-act" onclick="addSubheading()">+ Add Subtitle</button>
+        
+        <div class="sec-title">Font Family</div>
+        <select onchange="setFont(this.value)">
+          <option value="Poppins">Poppins (Clean)</option>
+          <option value="Bebas Neue">Bebas Neue (Viral/Thumbnails)</option>
+          <option value="Montserrat">Montserrat (Bold)</option>
+          <option value="Pacifico">Pacifico (Script)</option>
+        </select>
+        
+        <div class="sec-title">Text Color</div>
+        <input type="color" value="#ffffff" onchange="setTextColor(this.value)">
 
-  <div class="tool-drawer" id="drawer-text">
-    <button class="drawer-item" onclick="addTextPrompt('VIRAL MOMENT 🔥')">🔥 Viral Tag</button>
-    <button class="drawer-item" onclick="addTextPrompt('SUBSCRIBE NOW')">🔔 Subscribe</button>
-    <button class="drawer-item" onclick="addCustomText()">✏️ Custom Text</button>
-    <button class="drawer-item" onclick="clearText()">🚫 Clear Text</button>
-  </div>
+        <div class="sec-title">Text Effects</div>
+        <div class="grid-2">
+          <button class="btn-act" onclick="setTextShadow('glow')">⚡ Glow</button>
+          <button class="btn-act" onclick="setTextShadow('drop')">👥 Shadow</button>
+          <button class="btn-act" onclick="setTextStroke(3)">✏️ Outline</button>
+          <button class="btn-act" onclick="setTextStroke(0)">🚫 No Outline</button>
+        </div>
+      </div>
 
-  <div class="tool-drawer" id="drawer-filter">
-    <button class="drawer-item" onclick="applyVideoFilter('none')">Original</button>
-    <button class="drawer-item" onclick="applyVideoFilter('grayscale(100%)')">⬛ B&W</button>
-    <button class="drawer-item" onclick="applyVideoFilter('sepia(80%)')">🎞️ Vintage</button>
-    <button class="drawer-item" onclick="applyVideoFilter('contrast(160%) saturate(140%)')">✨ Cinematic</button>
-  </div>
+      <!-- 3. Elements & Media -->
+      <div id="sec-elements" class="drawer-sec">
+        <div class="sec-title">Upload Photo</div>
+        <label class="btn-act" style="cursor: pointer; background:#7c3aed;">
+          🖼️ Choose Image
+          <input type="file" id="imageInput" accept="image/*" style="display:none;">
+        </label>
+        
+        <div class="sec-title">Geometric Shapes</div>
+        <div class="grid-3">
+          <button class="btn-act" onclick="addShape('rect')">⬛ Rect</button>
+          <button class="btn-act" onclick="addShape('circle')">⚪ Circle</button>
+          <button class="btn-act" onclick="addShape('triangle')">🔺 Triangle</button>
+        </div>
 
-  <div class="tool-drawer" id="drawer-ratio">
-    <button class="drawer-item" onclick="setAspect('16/9')">16:9 (YouTube)</button>
-    <button class="drawer-item" onclick="setAspect('9/16')">9:16 (Shorts/Reel)</button>
-    <button class="drawer-item" onclick="setAspect('1/1')">1:1 (Square)</button>
-  </div>
+        <div class="sec-title">Gaming / Viral Badges</div>
+        <div class="grid-2">
+          <button class="btn-act" onclick="addBadge('🔴 LIVE', '#ef4444')">🔴 LIVE</button>
+          <button class="btn-act" onclick="addBadge('🔥 VIRAL', '#f97316')">🔥 VIRAL</button>
+          <button class="btn-act" onclick="addBadge('⭐ PRO', '#eab308')">⭐ PRO</button>
+          <button class="btn-act" onclick="addBadge('1v4 CLUTCH', '#3b82f6')">🎯 1v4</button>
+        </div>
+      </div>
 
-  <!-- Bottom CapCut Navigation -->
-  <div class="bottom-nav">
-    <button class="nav-tool active" onclick="switchDrawer('edit')"><span class="icon">✂️</span>Edit</button>
-    <button class="nav-tool" onclick="switchDrawer('audio')"><span class="icon">🎵</span>Audio</button>
-    <button class="nav-tool" onclick="switchDrawer('text')"><span class="icon">📝</span>Text</button>
-    <button class="nav-tool" onclick="switchDrawer('filter')"><span class="icon">🎨</span>Filters</button>
-    <button class="nav-tool" onclick="switchDrawer('ratio')"><span class="icon">📐</span>Ratio</button>
+      <!-- 4. Adjustments & Filters -->
+      <div id="sec-adjust" class="drawer-sec">
+        <div class="sec-title">Color Grading (Select Image)</div>
+        <div class="slider-item">
+          <span>Brightness</span>
+          <input type="range" min="-1" max="1" step="0.05" value="0" oninput="applyFilter('brightness', this.value)">
+        </div>
+        <div class="slider-item">
+          <span>Contrast</span>
+          <input type="range" min="-1" max="1" step="0.05" value="0" oninput="applyFilter('contrast', this.value)">
+        </div>
+        <div class="slider-item">
+          <span>Saturation</span>
+          <input type="range" min="-1" max="1" step="0.05" value="0" oninput="applyFilter('saturation', this.value)">
+        </div>
+        <div class="sec-title">Presets</div>
+        <div class="grid-2">
+          <button class="btn-act" onclick="applyPreset('bw')">⬛ B&W</button>
+          <button class="btn-act" onclick="applyPreset('vintage')">🎞️ Vintage</button>
+          <button class="btn-act" onclick="applyPreset('sepia')">📜 Sepia</button>
+          <button class="btn-act" onclick="applyPreset('reset')">🔄 Reset</button>
+        </div>
+      </div>
+
+      <!-- 5. Layers & Transform -->
+      <div id="sec-layers" class="drawer-sec">
+        <div class="sec-title">Layer Ordering</div>
+        <div class="grid-2">
+          <button class="btn-act" onclick="layerMove('front')">⬆️ Bring Front</button>
+          <button class="btn-act" onclick="layerMove('back')">⬇️ Send Back</button>
+        </div>
+        <div class="sec-title">Transform</div>
+        <div class="grid-2">
+          <button class="btn-act" onclick="flip('x')">↔️ Flip H</button>
+          <button class="btn-act" onclick="flip('y')">↕️ Flip V</button>
+          <button class="btn-act" onclick="rotate90()">🔄 Rotate 90°</button>
+          <button class="btn-act" style="background:#dc2626;" onclick="deleteActive()">🗑️ Delete</button>
+        </div>
+        <div class="slider-item" style="margin-top:6px;">
+          <span>Opacity:</span>
+          <input type="range" min="0.1" max="1" step="0.05" value="1" oninput="setOpacity(this.value)">
+        </div>
+      </div>
+
+      <!-- 6. Brush / Paint -->
+      <div id="sec-brush" class="drawer-sec">
+        <div class="sec-title">Free-Hand Drawing</div>
+        <button class="btn-act" id="brushBtn" onclick="toggleBrush()">🖌️ Brush OFF</button>
+        <div class="slider-item">
+          <span>Brush Size:</span>
+          <input type="range" min="4" max="60" value="14" oninput="setBrushSize(this.value)">
+        </div>
+        <div class="sec-title">Brush Color</div>
+        <input type="color" value="#a855f7" onchange="setBrushColor(this.value)">
+      </div>
+    </div>
+
+    <!-- Central Canvas Viewport -->
+    <div class="viewport">
+      <div class="canvas-wrap">
+        <canvas id="megaCanvas" width="640" height="360"></canvas>
+      </div>
+    </div>
   </div>
 
   <script>
-    const video = document.getElementById('mainVideo');
-    const scrubber = document.getElementById('timelineScrubber');
-    const curTime = document.getElementById('timeCurrent');
-    const durTime = document.getElementById('timeDuration');
-    const playBtn = document.getElementById('btnPlay');
-    const promptBox = document.getElementById('uploadPrompt');
-    const overlayText = document.getElementById('overlayText');
+    const canvas = new fabric.Canvas('megaCanvas', { backgroundColor: '#1e293b' });
 
-    let videoRotation = 0;
+    // LocalStorage Auto-save
+    function saveProject() {
+      localStorage.setItem('spacecreator_megaproject', JSON.stringify(canvas.toJSON()));
+    }
+    function loadProject() {
+      const saved = localStorage.getItem('spacecreator_megaproject');
+      if (saved) {
+        canvas.loadFromJSON(saved, canvas.renderAll.bind(canvas));
+      }
+    }
+    canvas.on('object:modified', saveProject);
+    canvas.on('object:added', saveProject);
+    canvas.on('object:removed', saveProject);
 
-    // File Upload
-    document.getElementById('videoFile').addEventListener('change', function(e) {
+    // Nav Switcher
+    function switchNav(id) {
+      document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.drawer-sec').forEach(s => s.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+      document.getElementById('sec-' + id).classList.add('active');
+    }
+
+    // Canvas Settings
+    function setRatio(w, h) {
+      canvas.setWidth(w);
+      canvas.setHeight(h);
+      canvas.renderAll();
+      saveProject();
+    }
+    function setCanvasBackground(c) {
+      canvas.setBackgroundColor(c, canvas.renderAll.bind(canvas));
+      saveProject();
+    }
+    function clearCanvas() {
+      if (confirm("Reset everything on canvas?")) {
+        canvas.clear();
+        canvas.setBackgroundColor('#1e293b', canvas.renderAll.bind(canvas));
+        saveProject();
+      }
+    }
+
+    // Typography
+    function addHeading() {
+      const text = new fabric.IText('VIRAL TITLE', { left: 60, top: 60, fontSize: 38, fill: '#ffffff', fontFamily: 'Bebas Neue' });
+      canvas.add(text);
+      canvas.setActiveObject(text);
+    }
+    function addSubheading() {
+      const text = new fabric.IText('Add your subtitle here', { left: 60, top: 120, fontSize: 18, fill: '#cbd5e1', fontFamily: 'Poppins' });
+      canvas.add(text);
+      canvas.setActiveObject(text);
+    }
+    function setFont(font) {
+      const act = canvas.getActiveObject();
+      if (act && act.type === 'i-text') { act.set('fontFamily', font); canvas.renderAll(); saveProject(); }
+    }
+    function setTextColor(c) {
+      const act = canvas.getActiveObject();
+      if (act) { act.set('fill', c); canvas.renderAll(); saveProject(); }
+    }
+    function setTextShadow(mode) {
+      const act = canvas.getActiveObject();
+      if (!act) return;
+      if (mode === 'glow') act.set('shadow', new fabric.Shadow({ color: '#38bdf8', blur: 22 }));
+      else if (mode === 'drop') act.set('shadow', new fabric.Shadow({ color: 'rgba(0,0,0,0.8)', blur: 10, offsetX: 6, offsetY: 6 }));
+      canvas.renderAll();
+      saveProject();
+    }
+    function setTextStroke(w) {
+      const act = canvas.getActiveObject();
+      if (act && act.type === 'i-text') { act.set({ stroke: '#000000', strokeWidth: w }); canvas.renderAll(); saveProject(); }
+    }
+
+    // Shapes & Badges
+    function addShape(type) {
+      let shape;
+      if (type === 'rect') shape = new fabric.Rect({ width: 130, height: 80, fill: '#38bdf8', rx: 8, ry: 8 });
+      else if (type === 'circle') shape = new fabric.Circle({ radius: 45, fill: '#ec4899' });
+      else if (type === 'triangle') shape = new fabric.Triangle({ width: 90, height: 90, fill: '#f59e0b' });
+      shape.set({ left: 100, top: 100 });
+      canvas.add(shape);
+      canvas.setActiveObject(shape);
+    }
+    function addBadge(label, color) {
+      const r = new fabric.Rect({ width: 110, height: 38, fill: color, rx: 6, ry: 6 });
+      const t = new fabric.Text(label, { fontSize: 16, fill: '#fff', fontFamily: 'Bebas Neue', originX: 'center', originY: 'center', left: 55, top: 19 });
+      const group = new fabric.Group([r, t], { left: 80, top: 80 });
+      canvas.add(group);
+      canvas.setActiveObject(group);
+    }
+
+    // Image Upload
+    document.getElementById('imageInput').addEventListener('change', function(e) {
       const file = e.target.files[0];
       if (!file) return;
-      video.src = URL.createObjectURL(file);
-      promptBox.style.display = 'none';
-      video.load();
-      video.play();
-      playBtn.innerText = '⏸️';
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        fabric.Image.fromURL(evt.target.result, function(img) {
+          img.scaleToWidth(280);
+          canvas.centerObject(img);
+          canvas.add(img);
+          canvas.setActiveObject(img);
+          saveProject();
+        });
+      };
+      reader.readAsDataURL(file);
     });
 
-    // Time Format Helper
-    function formatTime(s) {
-      const m = Math.floor(s / 60);
-      const sec = Math.floor(s % 60);
-      return `${m < 10 ? '0' : ''}${m}:${sec < 10 ? '0' : ''}${sec}`;
+    // Image Filters
+    function applyFilter(type, val) {
+      const act = canvas.getActiveObject();
+      if (!act || act.type !== 'image') return;
+      val = parseFloat(val);
+      if (type === 'brightness') act.filters[0] = new fabric.Image.filters.Brightness({ brightness: val });
+      if (type === 'contrast') act.filters[1] = new fabric.Image.filters.Contrast({ contrast: val });
+      if (type === 'saturation') act.filters[2] = new fabric.Image.filters.Saturation({ saturation: val });
+      act.applyFilters();
+      canvas.renderAll();
+      saveProject();
+    }
+    function applyPreset(p) {
+      const act = canvas.getActiveObject();
+      if (!act || act.type !== 'image') return;
+      if (p === 'bw') act.filters[3] = new fabric.Image.filters.Grayscale();
+      else if (p === 'vintage') act.filters[3] = new fabric.Image.filters.Sepia();
+      else if (p === 'sepia') act.filters[3] = new fabric.Image.filters.Sepia();
+      else if (p === 'reset') act.filters = [];
+      act.applyFilters();
+      canvas.renderAll();
+      saveProject();
     }
 
-    // Video Events
-    video.addEventListener('loadedmetadata', function() {
-      durTime.innerText = formatTime(video.duration);
-      scrubber.max = Math.floor(video.duration);
-    });
+    // Layers & Transforms
+    function layerMove(dir) {
+      const act = canvas.getActiveObject();
+      if (!act) return;
+      if (dir === 'front') canvas.bringToFront(act);
+      else canvas.sendToBack(act);
+      canvas.renderAll();
+      saveProject();
+    }
+    function flip(axis) {
+      const act = canvas.getActiveObject();
+      if (!act) return;
+      if (axis === 'x') act.set('flipX', !act.flipX);
+      else act.set('flipY', !act.flipY);
+      canvas.renderAll();
+      saveProject();
+    }
+    function rotate90() {
+      const act = canvas.getActiveObject();
+      if (act) { act.rotate((act.angle + 90) % 360); canvas.renderAll(); saveProject(); }
+    }
+    function setOpacity(val) {
+      const act = canvas.getActiveObject();
+      if (act) { act.set('opacity', parseFloat(val)); canvas.renderAll(); saveProject(); }
+    }
+    function deleteActive() {
+      const act = canvas.getActiveObject();
+      if (act) { canvas.remove(act); saveProject(); }
+    }
 
-    video.addEventListener('timeupdate', function() {
-      curTime.innerText = formatTime(video.currentTime);
-      scrubber.value = Math.floor(video.currentTime);
-    });
-
-    scrubber.addEventListener('input', function() {
-      video.currentTime = scrubber.value;
-    });
-
-    function togglePlay() {
-      if (video.paused) {
-        video.play();
-        playBtn.innerText = '⏸️';
+    // Freehand Drawing Brush
+    function toggleBrush() {
+      canvas.isDrawingMode = !canvas.isDrawingMode;
+      const btn = document.getElementById('brushBtn');
+      if (canvas.isDrawingMode) {
+        btn.innerText = '🛑 Brush ON';
+        btn.style.background = '#ef4444';
+        canvas.freeDrawingBrush.color = '#a855f7';
+        canvas.freeDrawingBrush.width = 14;
       } else {
-        video.pause();
-        playBtn.innerText = '▶️';
+        btn.innerText = '🖌️ Brush OFF';
+        btn.style.background = '#1f2937';
       }
     }
+    function setBrushSize(w) { if (canvas.freeDrawingBrush) canvas.freeDrawingBrush.width = parseInt(w); }
+    function setBrushColor(c) { if (canvas.freeDrawingBrush) canvas.freeDrawingBrush.color = c; }
 
-    // Switch CapCut Drawers
-    function switchDrawer(id) {
-      document.querySelectorAll('.tool-drawer').forEach(d => d.classList.remove('active'));
-      document.querySelectorAll('.nav-tool').forEach(b => b.classList.remove('active'));
-      document.getElementById('drawer-' + id).classList.add('active');
-      event.currentTarget.classList.add('active');
-    }
-
-    // Video Edit Tools
-    function changeSpeed(rate) { video.playbackRate = rate; }
-    
-    function rotateVideo() {
-      videoRotation = (videoRotation + 90) % 360;
-      video.style.transform = `rotate(${videoRotation}deg)`;
-    }
-
-    function splitVideo() {
-      alert(`Clip split successfully at ${formatTime(video.currentTime)}!`);
-    }
-
-    // Audio Tools
-    function toggleMute() { video.muted = !video.muted; }
-    function adjustVolume(vol) { video.volume = vol; }
-    function playSFX() {
-      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      const osc = audioCtx.createOscillator();
-      osc.frequency.setValueAtTime(800, audioCtx.currentTime);
-      osc.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.15);
-    }
-
-    // Text & Subtitle Tools
-    function addTextPrompt(txt) {
-      overlayText.innerText = txt;
-    }
-
-    function addCustomText() {
-      const val = prompt("Enter text on video:");
-      if (val) overlayText.innerText = val;
-    }
-
-    function clearText() { overlayText.innerText = ''; }
-
-    // Filters & Ratio
-    function applyVideoFilter(filterVal) {
-      video.style.filter = filterVal;
-    }
-
-    function setAspect(ratio) {
-      const vp = document.getElementById('viewport');
-      if (ratio === '9/16') {
-        video.style.aspectRatio = '9 / 16';
-      } else if (ratio === '16/9') {
-        video.style.aspectRatio = '16 / 9';
-      } else {
-        video.style.aspectRatio = '1 / 1';
-      }
-    }
-
-    // Export Frame/Snap
-    function exportFile() {
-      if (!video.videoWidth) {
-        alert("Please load a video first!");
-        return;
-      }
-      const c = document.createElement('canvas');
-      c.width = video.videoWidth;
-      c.height = video.videoHeight;
-      const ctx = c.getContext('2d');
-      ctx.filter = video.style.filter || 'none';
-      ctx.drawImage(video, 0, 0, c.width, c.height);
-
-      if (overlayText.innerText) {
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 48px Poppins';
-        ctx.textAlign = 'center';
-        ctx.shadowColor = 'black';
-        ctx.shadowBlur = 10;
-        ctx.fillText(overlayText.innerText, c.width / 2, c.height - 80);
-      }
-
+    // Export Formats
+    function exportDesign(format) {
       const link = document.createElement('a');
-      link.download = 'spacecreator-export.png';
-      link.href = c.toDataURL();
+      link.download = `spacecreator-art.${format === 'jpeg' ? 'jpg' : 'png'}`;
+      link.href = canvas.toDataURL({ format: format, quality: 0.95, multiplier: 2 });
       link.click();
     }
+    function exportPDF() {
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({
+        orientation: canvas.width > canvas.height ? 'landscape' : 'portrait',
+        unit: 'px',
+        format: [canvas.width, canvas.height]
+      });
+      pdf.addImage(canvas.toDataURL({ format: 'png', quality: 1.0 }), 'PNG', 0, 0, canvas.width, canvas.height);
+      pdf.save('spacecreator-print.pdf');
+    }
+
+    window.addEventListener('load', loadProject);
   </script>
 </body>
 </html>
